@@ -1,27 +1,38 @@
-class Pawn
+class Game_Piece
+
+  attr_accessor :player, :position
+
+  def initialize(player, position)
+    @player = player
+    @position = position
+  end
 
 end
 
-class King
+class Pawn < Game_Piece
 
 end
 
-class Queen
+class King < Game_Piece
 
 end
 
-class Bishop
+class Queen < Game_Piece
+
+end
+
+class Bishop < Game_Piece
   
 end
 
-class Knight
+class Knight < Game_Piece
 
 end
 
-class Rook
+class Rook < Game_Piece
 
 end
 
-class GameBoard
+class GameBoard < Game_Piece
 
 end
