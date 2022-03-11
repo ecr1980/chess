@@ -33,6 +33,6 @@ class Rook < Game_Piece
 
 end
 
-class GameBoard < Game_Piece
+class GameBoard
 
 end
