@@ -24,7 +24,7 @@ class Pawn
   def initialize(player, position)
     @player = player
     @position = position
-    if player == 1
+    if player == 2
       @token = "\u2659"
     else
       @token = "\u265F"
@@ -38,7 +38,7 @@ class King
   def initialize(player, position)
     @player = player
     @position = position
-    if player == 1
+    if player == 2
       @token = "\u2654"
     else
       @token = "\u265A"
@@ -52,7 +52,7 @@ class Queen
   def initialize(player, position)
     @player = player
     @position = position
-    if player == 1
+    if player == 2
       @token = "\u2655"
     else
       @token = "\u265B"
@@ -66,7 +66,7 @@ class Bishop
   def initialize(player, position)
     @player = player
     @position = position
-    if player == 1
+    if player == 2
       @token = "\u2657"
     else
       @token = "\u265D"
@@ -80,7 +80,7 @@ class Knight
   def initialize(player, position)
     @player = player
     @position = position
-    if player == 1
+    if player == 2
       @token = "\u2658"
     else
       @token = "\u265E"
@@ -94,7 +94,7 @@ class Rook
   def initialize(player, position)
     @player = player
     @position = position
-    if player == 1
+    if player == 2
       @token = "\u2656"
     else
       @token = "\u265C"
@@ -134,25 +134,25 @@ class Game_Board
   end
 
   def player_setup
-    @game_board[7][0].piece(2, "rook", [7,0])
-    @game_board[7][1].piece(2, "knight", [7,1]) 
-    @game_board[7][2].piece(2, "bishop", [7,2]) 
-    @game_board[7][3].piece(2, "queen", [7,3]) 
-    @game_board[7][4].piece(2, "king", [7,4]) 
-    @game_board[7][5].piece(2, "bishop", [7,5]) 
-    @game_board[7][6].piece(2, "knight", [7,6]) 
-    @game_board[7][7].piece(2, "rook", [7,7])  
-    @game_board[0][0].piece(1, "rook", [0,0])
-    @game_board[0][1].piece(1, "knight", [0,1]) 
-    @game_board[0][2].piece(1, "bishop", [0,2]) 
-    @game_board[0][3].piece(1, "queen", [0,3]) 
-    @game_board[0][4].piece(1, "king", [0,4]) 
-    @game_board[0][5].piece(1, "bishop", [0,5]) 
-    @game_board[0][6].piece(1, "knight", [0,6]) 
-    @game_board[0][7].piece(1, "rook", [0,7])
+    @game_board[7][0].piece(1, "rook", [7,0])
+    @game_board[7][1].piece(1, "knight", [7,1]) 
+    @game_board[7][2].piece(1, "bishop", [7,2]) 
+    @game_board[7][3].piece(1, "queen", [7,3]) 
+    @game_board[7][4].piece(1, "king", [7,4]) 
+    @game_board[7][5].piece(1, "bishop", [7,5]) 
+    @game_board[7][6].piece(1, "knight", [7,6]) 
+    @game_board[7][7].piece(1, "rook", [7,7])  
+    @game_board[0][0].piece(2, "rook", [0,0])
+    @game_board[0][1].piece(2, "knight", [0,1]) 
+    @game_board[0][2].piece(2, "bishop", [0,2]) 
+    @game_board[0][3].piece(2, "queen", [0,3]) 
+    @game_board[0][4].piece(2, "king", [0,4]) 
+    @game_board[0][5].piece(2, "bishop", [0,5]) 
+    @game_board[0][6].piece(2, "knight", [0,6]) 
+    @game_board[0][7].piece(2, "rook", [0,7])
     8.times do |index|
-      @game_board[6][index].piece(2, "pawn", [6,index])
-      @game_board[1][index].piece(1, "pawn", [2,index])
+      @game_board[6][index].piece(1, "pawn", [6,index])
+      @game_board[1][index].piece(2, "pawn", [2,index])
     end
   end
 
