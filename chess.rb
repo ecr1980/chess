@@ -25,79 +25,79 @@ class Pawn
     @player = player
     @position = position
     if player == 1
-      token = "\u2659"
+      @token = "\u2659"
     else
-      token = "\u265F"
+      @token = "\u265F"
     end
   end
 
 end
 
-class King < Game_Piece
+class King
   attr_accessor :player, :position, :token
   def initialize(player, position)
     @player = player
     @position = position
     if player == 1
-      token = "\u2654"
+      @token = "\u2654"
     else
-      token = "\u265A"
+      @token = "\u265A"
     end
   end
 
 end
 
-class Queen < Game_Piece
+class Queen
   attr_accessor :player, :position, :token
   def initialize(player, position)
     @player = player
     @position = position
     if player == 1
-      token = "\u2655"
+      @token = "\u2655"
     else
-      token = "\u265B"
+      @token = "\u265B"
     end
   end
 
 end
 
-class Bishop < Game_Piece
+class Bishop
   attr_accessor :player, :position, :token
   def initialize(player, position)
     @player = player
     @position = position
     if player == 1
-      token = "\u2657"
+      @token = "\u2657"
     else
-      token = "\u265D"
+      @token = "\u265D"
     end
   end
   
 end
 
-class Knight < Game_Piece
+class Knight
   attr_accessor :player, :position, :token
   def initialize(player, position)
     @player = player
     @position = position
     if player == 1
-      token = "\u2658"
+      @token = "\u2658"
     else
-      token = "\u265E"
+      @token = "\u265E"
     end
   end
 
 end
 
-class Rook < Game_Piece
+class Rook
   attr_accessor :player, :position, :token
   def initialize(player, position)
     @player = player
     @position = position
     if player == 1
-      token = "\u2656"
+      @token = "\u2656"
     else
-      token = "\u265C"
+      @token = "\u265C"
     end
   end
 
@@ -118,31 +118,74 @@ class Game_Board
   end
 
   def display
+    puts "      A     B     C     D     E     F     G     H"
     8.times do |x_index|
       if x_index.even?
-        color_a = :white
+        color_a = :blue
         color_b = :black
       else
         color_a = :black
-        color_b = :white
+        color_b = :blue
       end
-      puts " " + Rainbow("      ").bg(color_a) + Rainbow("      ").bg(color_b) + Rainbow("      ").bg(color_a) + Rainbow("      ").bg(color_b) + Rainbow("      ").bg(color_a) + Rainbow("      ").bg(color_b) + Rainbow("      ").bg(color_a) + Rainbow("      ").bg(color_b)
-      puts " " + Rainbow("  #{@game_board[x_index][0].display} ").bg(color_a) + Rainbow("  #{@game_board[x_index][1].display} ").bg(color_b) + Rainbow("  #{@game_board[x_index][2].display} ").bg(color_a) + Rainbow("  #{@game_board[x_index][3].display} ").bg(color_b) + Rainbow("  #{@game_board[x_index][4].display} ").bg(color_a) + Rainbow("  #{@game_board[x_index][5].display} ").bg(color_b) + Rainbow("  #{@game_board[x_index][6].display} ").bg(color_a) + Rainbow("  #{@game_board[x_index][7].display} ").bg(color_b)
-      puts " " + Rainbow("      ").bg(color_a) + Rainbow("      ").bg(color_b) + Rainbow("      ").bg(color_a) + Rainbow("      ").bg(color_b) + Rainbow("      ").bg(color_a) + Rainbow("      ").bg(color_b) + Rainbow("      ").bg(color_a) + Rainbow("      ").bg(color_b)
+      puts "   " + Rainbow("      ").bg(color_a) + Rainbow("      ").bg(color_b) + Rainbow("      ").bg(color_a) + Rainbow("      ").bg(color_b) + Rainbow("      ").bg(color_a) + Rainbow("      ").bg(color_b) + Rainbow("      ").bg(color_a) + Rainbow("      ").bg(color_b)
+      puts " #{8-x_index} " + Rainbow("  #{@game_board[x_index][0].display} ").bg(color_a) + Rainbow("  #{@game_board[x_index][1].display} ").bg(color_b) + Rainbow("  #{@game_board[x_index][2].display} ").bg(color_a) + Rainbow("  #{@game_board[x_index][3].display} ").bg(color_b) + Rainbow("  #{@game_board[x_index][4].display} ").bg(color_a) + Rainbow("  #{@game_board[x_index][5].display} ").bg(color_b) + Rainbow("  #{@game_board[x_index][6].display} ").bg(color_a) + Rainbow("  #{@game_board[x_index][7].display} ").bg(color_b)
+      puts "   " + Rainbow("      ").bg(color_a) + Rainbow("      ").bg(color_b) + Rainbow("      ").bg(color_a) + Rainbow("      ").bg(color_b) + Rainbow("      ").bg(color_a) + Rainbow("      ").bg(color_b) + Rainbow("      ").bg(color_a) + Rainbow("      ").bg(color_b)
     end
   end
 
   def player_setup
+    @game_board[7][0].piece(2, "rook", [7,0])
+    @game_board[7][1].piece(2, "knight", [7,1]) 
+    @game_board[7][2].piece(2, "bishop", [7,2]) 
+    @game_board[7][3].piece(2, "queen", [7,3]) 
+    @game_board[7][4].piece(2, "king", [7,4]) 
+    @game_board[7][5].piece(2, "bishop", [7,5]) 
+    @game_board[7][6].piece(2, "knight", [7,6]) 
+    @game_board[7][7].piece(2, "rook", [7,7])  
+    @game_board[0][0].piece(1, "rook", [0,0])
+    @game_board[0][1].piece(1, "knight", [0,1]) 
+    @game_board[0][2].piece(1, "bishop", [0,2]) 
+    @game_board[0][3].piece(1, "queen", [0,3]) 
+    @game_board[0][4].piece(1, "king", [0,4]) 
+    @game_board[0][5].piece(1, "bishop", [0,5]) 
+    @game_board[0][6].piece(1, "knight", [0,6]) 
+    @game_board[0][7].piece(1, "rook", [0,7])
+    8.times do |index|
+      @game_board[6][index].piece(2, "pawn", [6,index])
+      @game_board[1][index].piece(1, "pawn", [2,index])
+    end
+  end
+
 
 end
 
 class BoardLoc
  attr_accessor :display, :piece
   def initialize()
-    @token = " "
-    @display = " #{@token} "
+    @token = nil
+    @display = "   "
     @piece = nil
   end
+
+  def piece(player, type, loc)
+    case type
+    when "pawn"
+      @piece = Pawn.new(player, loc)
+    when "king"
+      @piece = King.new(player, loc)
+    when "queen"
+      @piece = Queen.new(player, loc)
+    when "knight"
+      @piece = Knight.new(player, loc)
+    when "bishop"
+      @piece = Bishop.new(player, loc)
+    when "rook"
+      @piece = Rook.new(player, loc)
+    end
+    @token = @piece.token
+    @display = " #{@token} "
+  end
+
 end
 
 start = Game_Board.new()
