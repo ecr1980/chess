@@ -20,25 +20,32 @@ class Game_Piece
 end
 
 class Pawn 
-  attr_accessor :player, :position, :token
+  attr_accessor :player, :position, :token, :moved
   def initialize(player, position)
     @player = player
     @position = position
+    @moved = false
     if player == 2
       @token = "\u2659"
     else
       @token = "\u265F"
     end
-    @moved? = false
   end
 
   def move_valid?(player, current_loc, new_loc)
+    if player == 1
+      x = -1
+      y = -2
+    else
+      x = 1
+      y = 2
+    end
     if player != @player
       return false
-    elsif new_loc[0] == current_loc[0] && new_loc[1] == current_loc[1] + 1
+    elsif new_loc[0] == current_loc[0] + x && new_loc[1] == current_loc[1]
       return true
-    elsif @moved? = false
-      if new_loc[0] == current_loc[0] && new_loc[1] == current_loc[1] + 2
+    elsif @moved == false
+      if new_loc[0] == current_loc[0] + y && new_loc[1] == current_loc[1]
         return true
       else
         return false
@@ -69,22 +76,21 @@ class King
     if player != @player
       return false
     else
-      case new_loc
-      when current_loc[0] && current_loc[1] +1
+      if current_loc[0] == new_loc[0] && current_loc[1] +1 == new_loc[1]
         return true
-      when current_loc[0] && current_loc[1] -1
+      elsif current_loc[0] == new_loc[0] && current_loc[1] -1 == new_loc[1]
         return true
-      when current_loc[0]+1 && current_loc[1] +1
+      elsif current_loc[0]+1 == new_loc[0] && current_loc[1] +1 == new_loc[1]
         return true
-      when current_loc[0]+1 && current_loc[1] -1
+      elsif current_loc[0]+1 == new_loc[0] && current_loc[1] -1 == new_loc[1]
         return true
-      when current_loc[0]-1 && current_loc[1] +1
+      elsif current_loc[0]-1 == new_loc[0] && current_loc[1] +1 == new_loc[1]
         return true
-      when current_loc[0]-1 && current_loc[1] -1
+      elsif current_loc[0]-1 == new_loc[0] && current_loc[1] -1 == new_loc[1]
         return true
-      when current_loc[0]+1 && current_loc[1]
+      elsif current_loc[0]+1 == new_loc[0] && current_loc[1] == new_loc[1]
         return true
-      when current_loc[0]-1 && current_loc[1]
+      elsif current_loc[0]-1 == new_loc[0] && current_loc[1] == new_loc[1]
         return true
       else
         return false
@@ -203,6 +209,20 @@ class Game_Board
     end
   end
 
+  def move(player,current_loc,new_loc)
+    move = false
+    while move == false
+     if @game_board[current_loc[0]][current_loc[1]].move_valid?(player,current_loc,new_loc)
+      move = true
+     end
+    end
+    @game_board[new_loc[0]][new_loc[1]] = @game_board[current_loc[0]][current_loc[1]]
+    if @game_board[new_loc[0]][new_loc[1]].is_a? Pawn
+      @game_board[new_loc[0]][new_loc[1]].moved = true
+    end
+    @game_board[current_loc[0]][current_loc[1]] = BoardLoc.new
+  end
+
 
 end
 
@@ -233,7 +253,20 @@ class BoardLoc
     @display = " #{@token} "
   end
 
+  def move_valid?(player, current_loc, new_loc)
+    @piece.move_valid?(player, current_loc, new_loc)
+  end
+
 end
 
+def turn(board)
+  puts "Please enter the piece you want to move."
+  puts "it doesnt matter, I'm just testing a thing."
+  move = gets.chomp
+  board.move(1, [7,4], [6,4])
+end
+  
 start = Game_Board.new()
+start.display
+turn(start)
 start.display
