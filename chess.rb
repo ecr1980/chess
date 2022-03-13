@@ -29,7 +29,27 @@ class Pawn
     else
       @token = "\u265F"
     end
+    @moved? = false
   end
+
+  def move_valid?(player, current_loc, new_loc)
+    if player != @player
+      return false
+    elsif new_loc[0] == current_loc[0] && new_loc[1] == current_loc[1] + 1
+      return true
+    elsif @moved? = false
+      if new_loc[0] == current_loc[0] && new_loc[1] == current_loc[1] + 2
+        return true
+      else
+        return false
+      end
+    else
+      return false
+    end
+  end
+
+      
+        
 
 end
 
@@ -42,6 +62,33 @@ class King
       @token = "\u2654"
     else
       @token = "\u265A"
+    end
+  end
+
+  def move_valid?(player, current_loc, new_loc)
+    if player != @player
+      return false
+    else
+      case new_loc
+      when current_loc[0] && current_loc[1] +1
+        return true
+      when current_loc[0] && current_loc[1] -1
+        return true
+      when current_loc[0]+1 && current_loc[1] +1
+        return true
+      when current_loc[0]+1 && current_loc[1] -1
+        return true
+      when current_loc[0]-1 && current_loc[1] +1
+        return true
+      when current_loc[0]-1 && current_loc[1] -1
+        return true
+      when current_loc[0]+1 && current_loc[1]
+        return true
+      when current_loc[0]-1 && current_loc[1]
+        return true
+      else
+        return false
+      end
     end
   end
 
