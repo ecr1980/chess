@@ -38,26 +38,30 @@ class Game_Board
   end
 
   def player_setup
-    @game_board[7][0].piece(1, "rook", [7,0])
-    @game_board[7][1].piece(1, "knight", [7,1]) 
-    @game_board[7][2].piece(1, "bishop", [7,2]) 
-    @game_board[7][3].piece(1, "queen", [7,3]) 
-    @game_board[7][4].piece(1, "king", [7,4]) 
-    @game_board[7][5].piece(1, "bishop", [7,5]) 
-    @game_board[7][6].piece(1, "knight", [7,6]) 
-    @game_board[7][7].piece(1, "rook", [7,7])  
-    @game_board[0][0].piece(2, "rook", [0,0])
-    @game_board[0][1].piece(2, "knight", [0,1]) 
-    @game_board[0][2].piece(2, "bishop", [0,2]) 
-    @game_board[0][3].piece(2, "queen", [0,3]) 
-    @game_board[0][4].piece(2, "king", [0,4]) 
-    @game_board[0][5].piece(2, "bishop", [0,5]) 
-    @game_board[0][6].piece(2, "knight", [0,6]) 
-    @game_board[0][7].piece(2, "rook", [0,7])
+    #The player_x_pieces array are to keep track of what pieces there are. Not
+    #neccisary for human players, but neccisary for the computer.
+    @player_1_pieces = Array.new(16)
+    @player_2_pieces = Array.new(16)
     8.times do |index|
-      @game_board[6][index].piece(1, "pawn", [6,index])
-      @game_board[1][index].piece(2, "pawn", [2,index])
+      @player_1_pieces[index] = @game_board[6][index].piece(1, "pawn", [6,index])
+      @player_2_pieces[index] = @game_board[1][index].piece(2, "pawn", [2,index])
     end
+    @player_1_pieces[8] = @game_board[7][0].piece(1, "rook", [7,0])
+    @player_1_pieces[9] = @game_board[7][1].piece(1, "knight", [7,1]) 
+    @player_1_pieces[10] = @game_board[7][2].piece(1, "bishop", [7,2]) 
+    @player_1_pieces[11] = @game_board[7][3].piece(1, "queen", [7,3]) 
+    @player_1_pieces[12] = @game_board[7][4].piece(1, "king", [7,4]) 
+    @player_1_pieces[13] = @game_board[7][5].piece(1, "bishop", [7,5]) 
+    @player_1_pieces[14] = @game_board[7][6].piece(1, "knight", [7,6]) 
+    @player_1_pieces[15] = @game_board[7][7].piece(1, "rook", [7,7])  
+    @player_2_pieces[8] = @game_board[0][0].piece(2, "rook", [0,0])
+    @player_2_pieces[9] = @game_board[0][1].piece(2, "knight", [0,1]) 
+    @player_2_pieces[10] = @game_board[0][2].piece(2, "bishop", [0,2]) 
+    @player_2_pieces[11] = @game_board[0][3].piece(2, "queen", [0,3]) 
+    @player_2_pieces[12] = @game_board[0][4].piece(2, "king", [0,4]) 
+    @player_2_pieces[13] = @game_board[0][5].piece(2, "bishop", [0,5]) 
+    @player_2_pieces[14] = @game_board[0][6].piece(2, "knight", [0,6]) 
+    @player_2_pieces[15] = @game_board[0][7].piece(2, "rook", [0,7])
   end
 
   def move(player,current_loc,new_loc)
