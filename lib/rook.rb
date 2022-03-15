@@ -71,6 +71,8 @@ class Rook
         can_move = false
       end
     end
+    return valid_moves
+  end
 
 
 
