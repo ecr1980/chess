@@ -55,16 +55,17 @@ class Game_Board
     @player_1_pieces[12] = @game_board[7][4].new_piece(1, "king", [7,4]) 
     @player_1_pieces[13] = @game_board[7][5].new_piece(1, "bishop", [7,5]) 
     @player_1_pieces[14] = @game_board[7][6].new_piece(1, "knight", [7,6])
-    @game_board[7][6].piece.valid_moves()
+    p @game_board[7][6].piece.valid_moves(@game_board)
     @player_1_pieces[15] = @game_board[7][7].new_piece(1, "rook", [7,7])  
     @player_2_pieces[8] = @game_board[0][0].new_piece(2, "rook", [0,0])
-    @player_2_pieces[9] = @game_board[0][1].new_piece(2, "knight", [0,1]) 
+    @player_2_pieces[9] = @game_board[0][1].new_piece(2, "knight", [0,1])
     @player_2_pieces[10] = @game_board[0][2].new_piece(2, "bishop", [0,2]) 
     @player_2_pieces[11] = @game_board[0][3].new_piece(2, "queen", [0,3]) 
     @player_2_pieces[12] = @game_board[0][4].new_piece(2, "king", [0,4]) 
     @player_2_pieces[13] = @game_board[0][5].new_piece(2, "bishop", [0,5]) 
     @player_2_pieces[14] = @game_board[0][6].new_piece(2, "knight", [0,6]) 
     @player_2_pieces[15] = @game_board[0][7].new_piece(2, "rook", [0,7])
+    p @game_board[0][7].piece.valid_moves(@game_board)
   end
 
   def move(player,current_loc,new_loc)
@@ -124,7 +125,7 @@ def turn(board)
   board.move(1, [7,4], [6,4])
 end
   
-start = Game_Board.new()
-start.display
-turn(start)
-start.display
+$start = Game_Board.new()
+$start.display
+turn($start)
+$start.display
