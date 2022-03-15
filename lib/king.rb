@@ -10,30 +10,29 @@ class King
     end
   end
 
-  def move_valid?(player, current_loc, new_loc)
-    if player != @player
-      return false
-    else
-      if current_loc[0] == new_loc[0] && current_loc[1] +1 == new_loc[1]
-        return true
-      elsif current_loc[0] == new_loc[0] && current_loc[1] -1 == new_loc[1]
-        return true
-      elsif current_loc[0]+1 == new_loc[0] && current_loc[1] +1 == new_loc[1]
-        return true
-      elsif current_loc[0]+1 == new_loc[0] && current_loc[1] -1 == new_loc[1]
-        return true
-      elsif current_loc[0]-1 == new_loc[0] && current_loc[1] +1 == new_loc[1]
-        return true
-      elsif current_loc[0]-1 == new_loc[0] && current_loc[1] -1 == new_loc[1]
-        return true
-      elsif current_loc[0]+1 == new_loc[0] && current_loc[1] == new_loc[1]
-        return true
-      elsif current_loc[0]-1 == new_loc[0] && current_loc[1] == new_loc[1]
-        return true
-      else
-        return false
+  def valid_moves(game_board)
+    valid_moves = Array.new()
+    check_array = [[@position[0] - 1,@position[1]+1],
+                   [@position[0],@position[1]+1],
+                   [@position[0] + 1,@position[1]+1],
+                   [@position[0] - 1,@position[1]],
+                   [@position[0] + 1,@position[1]],
+                   [@position[0] - 1,@position[1]-1],
+                   [@position[0],@position[1]-1],
+                   [@position[0] + 1,@position[1]-1]]
+
+    8.times do |index|
+      if check_array[index][0] >= 0 && check_array[index][1] >=0
+        if check_array[index][0] < 8 && check_array[index][1] < 8
+          if game_board[check_array[index][0]][check_array[index][1]].piece == nil
+            valid_moves << check_array[index]
+          elsif game_board[check_array[index][0]][check_array[index][1]].piece.player != @player
+            valid_moves << check_array[index]
+          end
+        end
       end
     end
+    return valid_moves
   end
 
 end
