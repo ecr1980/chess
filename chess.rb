@@ -45,26 +45,37 @@ class Game_Board
     @player_1_pieces = Array.new(16)
     @player_2_pieces = Array.new(16)
     8.times do |index|
-      @player_1_pieces[index] = @game_board[6][index].new_piece(1, "pawn", [6,index])
-      @player_2_pieces[index] = @game_board[1][index].new_piece(2, "pawn", [2,index])
+      #@player_1_pieces[index] = @game_board[6][index].new_piece(1, "pawn", [6,index])
+      #@player_2_pieces[index] = @game_board[1][index].new_piece(2, "pawn", [2,index])
     end
     @player_1_pieces[8] = @game_board[7][0].new_piece(1, "rook", [7,0])
     @player_1_pieces[9] = @game_board[7][1].new_piece(1, "knight", [7,1]) 
     @player_1_pieces[10] = @game_board[7][2].new_piece(1, "bishop", [7,2]) 
+    
     @player_1_pieces[11] = @game_board[7][3].new_piece(1, "queen", [7,3]) 
     @player_1_pieces[12] = @game_board[7][4].new_piece(1, "king", [7,4]) 
     @player_1_pieces[13] = @game_board[7][5].new_piece(1, "bishop", [7,5]) 
     @player_1_pieces[14] = @game_board[7][6].new_piece(1, "knight", [7,6])
-    p @game_board[7][6].piece.valid_moves(@game_board)
+    
     @player_1_pieces[15] = @game_board[7][7].new_piece(1, "rook", [7,7])  
     @player_2_pieces[8] = @game_board[0][0].new_piece(2, "rook", [0,0])
     @player_2_pieces[9] = @game_board[0][1].new_piece(2, "knight", [0,1])
     @player_2_pieces[10] = @game_board[0][2].new_piece(2, "bishop", [0,2]) 
-    @player_2_pieces[11] = @game_board[0][3].new_piece(2, "queen", [0,3]) 
+    @player_2_pieces[11] = @game_board[0][3].new_piece(2, "queen", [0,3])
+    
     @player_2_pieces[12] = @game_board[0][4].new_piece(2, "king", [0,4]) 
     @player_2_pieces[13] = @game_board[0][5].new_piece(2, "bishop", [0,5]) 
     @player_2_pieces[14] = @game_board[0][6].new_piece(2, "knight", [0,6]) 
     @player_2_pieces[15] = @game_board[0][7].new_piece(2, "rook", [0,7])
+    puts "First rook"
+    p @game_board[7][0].piece.valid_moves(@game_board)
+    puts "a bishop"
+    p @game_board[7][2].piece.valid_moves(@game_board)
+    puts "a knight"
+    p @game_board[7][6].piece.valid_moves(@game_board)
+    puts "a queen"
+    p @game_board[0][3].piece.valid_moves(@game_board) 
+    puts "last rook"
     p @game_board[0][7].piece.valid_moves(@game_board)
   end
 
