@@ -42,6 +42,7 @@ class Rook
         can_move = false
       end
       can_move = true
+    end
     until can_move == false
       change = 1
       if position[0]+change > 7
