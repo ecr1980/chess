@@ -78,9 +78,6 @@ class Game_Board
   end
 
   def move(player,current_loc,new_loc)
-    if in_check?(player)
-      puts "You are in check! You must fix this."
-    end
 
     if player != @game_board[current_loc[0]][current_loc[1]].piece.player
       puts "You can't move your opponent's piece."
@@ -116,7 +113,7 @@ class Game_Board
     end
   end
 
-  def captured(player,loc)
+  def captured(player,loc,temp_piece = nil)
     if player == 1
       if @game_board[loc[0]][loc[1]].is_a? Pawn
         @player_2_captured_pawns << @game_board[loc[0]][loc[1]].piece.token
@@ -148,9 +145,8 @@ class Game_Board
           return true
         end
       end
-    else
-      return false
     end
+    return false
   end
 
 
@@ -188,7 +184,7 @@ end
 def turn(player,board)
   puts "Player #{player}, it is your turn."
   if board.in_check?(player)
-    puts "You are in check! You must fix this."
+    puts Rainbow("You are in check! You must fix this.").yellow
   end
   continue = false
   while continue == false
