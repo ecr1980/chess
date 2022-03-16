@@ -76,6 +76,10 @@ class Game_Board
   end
 
   def move(player,current_loc,new_loc)
+    if player != @game_board[current_loc[0]][current_loc[1]].piece.player
+      puts "You can't move your opponent's piece."
+      return false
+    end
     if @game_board[current_loc[0]][current_loc[1]].piece.valid_moves(@game_board).include?(new_loc)
       update_player_array(player,current_loc,new_loc)
       @game_board[current_loc[0]][current_loc[1]].piece.position = new_loc
@@ -199,21 +203,21 @@ def letter_conversion(letter)
   2.times do |i|
     case letter[i].downcase
     when '1'
-      value[0] = 8
-    when '2'
       value[0] = 7
-    when '3'
+    when '2'
       value[0] = 6
-    when '4'
+    when '3'
       value[0] = 5
-    when '5'
+    when '4'
       value[0] = 4
-    when '6'
+    when '5'
       value[0] = 3
-    when '7'
+    when '6'
       value[0] = 2
-    when '8'
+    when '7'
       value[0] = 1
+    when '8'
+      value[0] = 0
     when 'a'
       value[1] = 0
     when 'b'
