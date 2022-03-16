@@ -41,59 +41,87 @@ class Game_Board
     end
     puts "#{@player_2_captured_nobals.join(' ')}"
     puts "#{@player_2_captured_pawns.join(' ')}"
+
+
   end
 
   def player_setup
-    #The player_x_pieces array are to keep track of what pieces there are. Not
-    #neccisary for human players, but neccisary for the computer.
-    @player_1_pieces = Array.new(16)
-    @player_2_pieces = Array.new(16)
-    @player_1_captured_nobals = Array.new(8)
-    @player_2_captured_nobals = Array.new(8)
-    @player_1_captured_pawns = Array.new(8)
-    @player_2_captured_pawns = Array.new(8)
+    #The player_x_pieces array are to keep track of what pieces there are.
+    @player_1_pieces = [[7,0],[7,1],[7,2],[7,3],[7,4],[7,5],[7,6],[7,7],[6,0],[6,1],[6,2],[6,3],[6,4],[6,5],[6,6],[6,7]]
+    @player_2_pieces = [[0,0],[0,1],[0,2],[0,3],[0,4],[0,5],[0,6],[0,7],[1,0],[1,1],[1,2],[1,3],[1,4],[1,5],[1,6],[1,7]]
+    @player_1_captured_nobals = Array.new()
+    @player_2_captured_nobals = Array.new()
+    @player_1_captured_pawns = Array.new()
+    @player_2_captured_pawns = Array.new()
     8.times do |index|
-      @player_1_pieces[index] = @game_board[6][index].new_piece(1, "pawn", [6,index])
-      @player_2_pieces[index] = @game_board[1][index].new_piece(2, "pawn", [1,index])
+      @game_board[6][index].new_piece(1, "pawn", [6,index])
+      @game_board[1][index].new_piece(2, "pawn", [1,index])
     end
-    @player_1_pieces[8] = @game_board[7][0].new_piece(1, "rook", [7,0])
-    @player_1_pieces[9] = @game_board[7][1].new_piece(1, "knight", [7,1]) 
-    @player_1_pieces[10] = @game_board[7][2].new_piece(1, "bishop", [7,2]) 
-    
-    @player_1_pieces[11] = @game_board[7][3].new_piece(1, "queen", [7,3]) 
-    @player_1_pieces[12] = @game_board[7][4].new_piece(1, "king", [7,4]) 
-    @player_1_pieces[13] = @game_board[7][5].new_piece(1, "bishop", [7,5]) 
-    @player_1_pieces[14] = @game_board[7][6].new_piece(1, "knight", [7,6])
-    
-    @player_1_pieces[15] = @game_board[7][7].new_piece(1, "rook", [7,7])  
-    @player_2_pieces[8] = @game_board[0][0].new_piece(2, "rook", [0,0])
-    @player_2_pieces[9] = @game_board[0][1].new_piece(2, "knight", [0,1])
-    @player_2_pieces[10] = @game_board[0][2].new_piece(2, "bishop", [0,2]) 
-    @player_2_pieces[11] = @game_board[0][3].new_piece(2, "queen", [0,3])
-    
-    @player_2_pieces[12] = @game_board[0][4].new_piece(2, "king", [0,4]) 
-    @player_2_pieces[13] = @game_board[0][5].new_piece(2, "bishop", [0,5]) 
-    @player_2_pieces[14] = @game_board[0][6].new_piece(2, "knight", [0,6]) 
-    @player_2_pieces[15] = @game_board[0][7].new_piece(2, "rook", [0,7])
+    @game_board[7][0].new_piece(1, "rook", [7,0])
+    @game_board[7][1].new_piece(1, "knight", [7,1]) 
+    @game_board[7][2].new_piece(1, "bishop", [7,2]) 
+    @game_board[7][3].new_piece(1, "queen", [7,3]) 
+    @game_board[7][4].new_piece(1, "king", [7,4]) 
+    @game_board[7][5].new_piece(1, "bishop", [7,5]) 
+    @game_board[7][6].new_piece(1, "knight", [7,6])
+    @game_board[7][7].new_piece(1, "rook", [7,7])  
+    @game_board[0][0].new_piece(2, "rook", [0,0])
+    @game_board[0][1].new_piece(2, "knight", [0,1])
+    @game_board[0][2].new_piece(2, "bishop", [0,2]) 
+    @game_board[0][3].new_piece(2, "queen", [0,3])
+    @game_board[0][4].new_piece(2, "king", [0,4]) 
+    @game_board[0][5].new_piece(2, "bishop", [0,5]) 
+    @game_board[0][6].new_piece(2, "knight", [0,6]) 
+    @game_board[0][7].new_piece(2, "rook", [0,7])
   end
 
   def move(player,current_loc,new_loc)
     if @game_board[current_loc[0]][current_loc[1]].piece.valid_moves(@game_board).include?(new_loc)
+      update_player_array(player,current_loc,new_loc)
+      @game_board[current_loc[0]][current_loc[1]].piece.position = new_loc
+      if (@game_board[current_loc[0]][current_loc[1]].piece.is_a? Pawn) || (@game_board[current_loc[0]][current_loc[1]].piece.is_a? King) || (@game_board[current_loc[0]][current_loc[1]].piece.is_a? Rook)
+        @game_board[current_loc[0]][current_loc[1]].piece.moved = true
+      end
+
       if @game_board[new_loc[0]][new_loc[1]].piece != nil
         captured(player,new_loc)
       end
       @game_board[new_loc[0]][new_loc[1]] = @game_board[current_loc[0]][current_loc[1]]
       @game_board[current_loc[0]][current_loc[1]] = BoardLoc.new
-      if @game_board[new_loc[0]][new_loc[1]].is_a? Pawn
-        @game_board[new_loc[0]][new_loc[1]].moved = true
-      end
-      @game_board[current_loc[0]][current_loc[1]] = BoardLoc.new
+      
     else
-      puts "That's not a valid move, try again." 
+      puts "You are unable to move there, try again." 
+      return false
+    end
+    display()
+  end
+
+  def update_player_array(player,current_loc,new_loc)
+    if player == 1
+      @player_1_pieces.delete(current_loc)
+      @player_1_pieces << new_loc
+    else
+      @player_2_pieces.delete(current_loc)
+      @player_2_pieces << new_loc
     end
   end
 
   def captured(player,loc)
+    if player == 1
+      if @game_board[loc[0]][loc[1]].is_a? Pawn
+        @player_2_captured_pawns << @game_board[loc[0]][loc[1]].piece.token
+      else
+        @player_2_captured_nobals << @game_board[loc[0]][loc[1]].piece.token
+      end
+      @player_2_pieces.delete(loc)
+    else
+      if @game_board[loc[0]][loc[1]].is_a? Pawn
+        @player_1_captured_pawns << @game_board[loc[0]][loc[1]].piece.token
+      else
+        @player_1_captured_nobals << @game_board[loc[0]][loc[1]].piece.token
+      end
+      @player_1_pieces.delete(loc)
+    end
 
   end
 
@@ -132,15 +160,84 @@ class BoardLoc
 end
 
 def turn(board)
-  puts "Please enter the piece you want to move."
-  puts "it doesnt matter, I'm just testing a thing."
-  move = gets.chomp
+  continue = false
+  while continue == false
+    entered_piece = false
+    entered_move = false
+    while entered_piece == false
+      puts "Please enter the piece you want to move."
+      entered_piece = gets.chomp
+      entered_piece = move_conversion(entered_piece)
+    end
+    #The move_conversion changes the on screen grid option to proper array
+    while entered_move == false
+      puts "Please enter the new location."
+      entered_move = gets.chomp
+      entered_move = move_conversion(entered_move)
+    end
+    continue = true
+  end
   board.move(1, [7,4], [6,4])
   board.move(1, [6,4], [4,4])
+  board.move(2, [1,5], [3,5])
+  board.move(2, [3,5], [4,4])
   board.move(1, [7,4], [6,4])
+end
+
+def move_conversion(loc)
+  loc = loc.chars
+  return_array = letter_conversion(loc)
+  if return_array.include?(nil) || return_array[0] > 7
+    puts "Please reference the game board for valid locations."
+    return false
+  end
+  return return_array  
+end
+
+def letter_conversion(letter)
+  value = Array.new(2)
+  2.times do |i|
+    case letter[i].downcase
+    when '1'
+      value[0] = 0
+    when '2'
+      value[0] = 1
+    when '3'
+      value[0] = 2
+    when '4'
+      value[0] = 3
+    when '5'
+      value[0] = 4
+    when '6'
+      value[0] = 5
+    when '7'
+      value[0] = 6
+    when '8'
+      value[0] = 7
+    when 'a'
+      value[1] = 0
+    when 'b'
+      value[1] = 1
+    when 'c'
+      value[1] = 2
+    when 'd'
+      value[1] = 3
+    when 'e'
+      value[1] = 4
+    when 'f'
+      value[1] = 5
+    when 'g'
+      value[1] = 6
+    when 'h'
+      value[1] = 7
+    else
+      value[0] = 8
+    end
+  end
+
+  return value
 end
   
 $start = Game_Board.new()
 $start.display
 turn($start)
-$start.display
