@@ -49,6 +49,8 @@ class Game_Board
     #The player_x_pieces array are to keep track of what pieces there are.
     @player_1_pieces = [[7,0],[7,1],[7,2],[7,3],[7,4],[7,5],[7,6],[7,7],[6,0],[6,1],[6,2],[6,3],[6,4],[6,5],[6,6],[6,7]]
     @player_2_pieces = [[0,0],[0,1],[0,2],[0,3],[0,4],[0,5],[0,6],[0,7],[1,0],[1,1],[1,2],[1,3],[1,4],[1,5],[1,6],[1,7]]
+    @p_1_king = [7,4]
+    @p_2_king = [0,4]
     @player_1_captured_nobals = Array.new()
     @player_2_captured_nobals = Array.new()
     @player_1_captured_pawns = Array.new()
@@ -76,6 +78,10 @@ class Game_Board
   end
 
   def move(player,current_loc,new_loc)
+    if in_check?(player)
+      puts "You are in check! You must fix this."
+    end
+
     if player != @game_board[current_loc[0]][current_loc[1]].piece.player
       puts "You can't move your opponent's piece."
       return false
@@ -129,6 +135,24 @@ class Game_Board
 
   end
 
+  def in_check?(player)
+    if player == 1
+      @player_2_pieces.length.times do |index|
+        if @game_board[@player_2_pieces[index][0]][@player_2_pieces[index][1]].piece.valid_moves(@game_board).include?(@p_1_king)
+          return true
+        end
+      end
+    elsif player == 2
+      @player_1_pieces.length.times do |index|
+        if @game_board[@player_1_pieces[index][0]][@player_1_pieces[index][1]].piece.valid_moves(@game_board).include?(@p_2_king)
+          return true
+        end
+      end
+    else
+      return false
+    end
+  end
+
 
 
 end
@@ -159,11 +183,13 @@ class BoardLoc
     @token = @piece.token
     @display = " #{@token} "
   end
-
-
 end
 
 def turn(player,board)
+  puts "Player #{player}, it is your turn."
+  if board.in_check?(player)
+    puts "You are in check! You must fix this."
+  end
   continue = false
   while continue == false
     entered_piece = false
