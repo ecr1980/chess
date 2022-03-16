@@ -159,7 +159,7 @@ class BoardLoc
 
 end
 
-def turn(board)
+def turn(player,board)
   continue = false
   while continue == false
     entered_piece = false
@@ -175,13 +175,13 @@ def turn(board)
       entered_move = gets.chomp
       entered_move = move_conversion(entered_move)
     end
-    continue = true
+    continue = board.move(player,entered_piece,entered_move)
   end
-  board.move(1, [7,4], [6,4])
-  board.move(1, [6,4], [4,4])
-  board.move(2, [1,5], [3,5])
-  board.move(2, [3,5], [4,4])
-  board.move(1, [7,4], [6,4])
+  #board.move(1, [7,4], [6,4])
+  #board.move(1, [6,4], [4,4])
+  #board.move(2, [1,5], [3,5])
+  #board.move(2, [3,5], [4,4])
+  #board.move(1, [7,4], [6,4])
 end
 
 def move_conversion(loc)
@@ -199,21 +199,21 @@ def letter_conversion(letter)
   2.times do |i|
     case letter[i].downcase
     when '1'
-      value[0] = 0
+      value[0] = 8
     when '2'
-      value[0] = 1
+      value[0] = 7
     when '3'
-      value[0] = 2
+      value[0] = 6
     when '4'
-      value[0] = 3
+      value[0] = 5
     when '5'
       value[0] = 4
     when '6'
-      value[0] = 5
+      value[0] = 3
     when '7'
-      value[0] = 6
+      value[0] = 2
     when '8'
-      value[0] = 7
+      value[0] = 1
     when 'a'
       value[1] = 0
     when 'b'
@@ -238,6 +238,19 @@ def letter_conversion(letter)
   return value
 end
   
+
+def game_loop
+  player = 1
+  while true
+    turn(player,$start)
+    if player == 1
+      player = 2
+    else
+      player = 1
+    end
+  end
+end
+  
 $start = Game_Board.new()
 $start.display
-turn($start)
+game_loop()
