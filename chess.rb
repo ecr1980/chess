@@ -78,7 +78,10 @@ class Game_Board
   end
 
   def move(player,current_loc,new_loc)
-
+    if @game_board[current_loc[0]][current_loc[1]].piece == nil
+      puts "Your piece selection didn't have a piece."
+      return false
+    end
     if player != @game_board[current_loc[0]][current_loc[1]].piece.player
       puts "You can't move your opponent's piece."
       return false
@@ -100,7 +103,6 @@ class Game_Board
       puts "You are unable to move there, try again." 
       return false
     end
-    display()
   end
 
   def update_player_array(player,current_loc,new_loc)
@@ -148,6 +150,52 @@ class Game_Board
     end
     return false
   end
+
+  def checkmate?(player)
+    if player == 1
+      other_player = 2
+    else
+      other_player = 1
+    end
+
+    if in_check?(other_player)
+      if player == 1
+        return will_check?(2)
+      else
+        return will_check(1)
+      end
+    end
+  end
+
+  def will_check(player)
+    in_check = true
+    if player == 1
+      player_1_pieces.length.times do |i|
+        @game_board[@player_1_pieces[index][0]][@player_1_pieces[index][1]].piece.valid_moves.length.times do |j|
+          temp_game_board = @game_board.dup
+          temp_game_board.move(player,player_1_pieces[i], @game_board[@player_1_pieces[index][0]][@player_1_pieces[index][1]].piece.valid_moves[j])
+          if temp_game_board.in_check?(1) == false
+            in_check = false
+          end
+        end
+      end
+    else
+      player_2_pieces.length.times do |i|
+        @game_board[@player_2_pieces[index][0]][@player_2_pieces[index][1]].piece.valid_moves.length.times do |j|
+          temp_game_board = @game_board.dup
+          temp_game_board.move(player,player_2_pieces[i], @game_board[@player_2_pieces[index][0]][@player_2_pieces[index][1]].piece.valid_moves[j])
+          if temp_game_board.in_check?(2) == false
+            in_check = false
+          end
+        end
+      end
+    end
+    return in_check
+  end
+
+
+
+
 
 
 
@@ -202,7 +250,13 @@ def turn(player,board)
       entered_move = move_conversion(entered_move)
     end
     continue = board.move(player,entered_piece,entered_move)
+    if board.checkmate?(player)
+      return false
+    end
   end
+
+
+
   #board.move(1, [7,4], [6,4])
   #board.move(1, [6,4], [4,4])
   #board.move(2, [1,5], [3,5])
@@ -268,7 +322,8 @@ end
 def game_loop
   player = 1
   while true
-    turn(player,$start)
+    $start.display
+    turn(player,$start)  
     if player == 1
       player = 2
     else
@@ -278,5 +333,5 @@ def game_loop
 end
   
 $start = Game_Board.new()
-$start.display
+
 game_loop()
