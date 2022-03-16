@@ -46,7 +46,7 @@ class Game_Board
     @player_2_pieces = Array.new(16)
     8.times do |index|
       @player_1_pieces[index] = @game_board[6][index].new_piece(1, "pawn", [6,index])
-      @player_2_pieces[index] = @game_board[1][index].new_piece(2, "pawn", [2,index])
+      @player_2_pieces[index] = @game_board[1][index].new_piece(2, "pawn", [1,index])
     end
     @player_1_pieces[8] = @game_board[7][0].new_piece(1, "rook", [7,0])
     @player_1_pieces[9] = @game_board[7][1].new_piece(1, "knight", [7,1]) 
@@ -77,6 +77,13 @@ class Game_Board
     p @game_board[0][3].piece.valid_moves(@game_board) 
     puts "last rook"
     p @game_board[0][7].piece.valid_moves(@game_board)
+
+    puts "king time"
+    p @game_board[0][4].piece.valid_moves(@game_board)
+
+    puts "pawns"
+    p @game_board[1][4].piece.valid_moves(@game_board)
+    p @game_board[6][0].piece.valid_moves(@game_board)
   end
 
   def move(player,current_loc,new_loc)
