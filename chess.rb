@@ -24,6 +24,8 @@ class Game_Board
   end
 
   def display
+    puts "#{@player_1_captured_nobals.join(' ')}"
+    puts "#{@player_1_captured_pawns.join(' ')}"
     puts "      A     B     C     D     E     F     G     H"
     8.times do |x_index|
       if x_index.even?
@@ -37,6 +39,8 @@ class Game_Board
       puts " #{8-x_index} " + Rainbow("  #{@game_board[x_index][0].display} ").bg(color_a) + Rainbow("  #{@game_board[x_index][1].display} ").bg(color_b) + Rainbow("  #{@game_board[x_index][2].display} ").bg(color_a) + Rainbow("  #{@game_board[x_index][3].display} ").bg(color_b) + Rainbow("  #{@game_board[x_index][4].display} ").bg(color_a) + Rainbow("  #{@game_board[x_index][5].display} ").bg(color_b) + Rainbow("  #{@game_board[x_index][6].display} ").bg(color_a) + Rainbow("  #{@game_board[x_index][7].display} ").bg(color_b)
       puts "   " + Rainbow("      ").bg(color_a) + Rainbow("      ").bg(color_b) + Rainbow("      ").bg(color_a) + Rainbow("      ").bg(color_b) + Rainbow("      ").bg(color_a) + Rainbow("      ").bg(color_b) + Rainbow("      ").bg(color_a) + Rainbow("      ").bg(color_b)
     end
+    puts "#{@player_2_captured_nobals.join(' ')}"
+    puts "#{@player_2_captured_pawns.join(' ')}"
   end
 
   def player_setup
@@ -44,6 +48,10 @@ class Game_Board
     #neccisary for human players, but neccisary for the computer.
     @player_1_pieces = Array.new(16)
     @player_2_pieces = Array.new(16)
+    @player_1_captured_nobals = Array.new(8)
+    @player_2_captured_nobals = Array.new(8)
+    @player_1_captured_pawns = Array.new(8)
+    @player_2_captured_pawns = Array.new(8)
     8.times do |index|
       @player_1_pieces[index] = @game_board[6][index].new_piece(1, "pawn", [6,index])
       @player_2_pieces[index] = @game_board[1][index].new_piece(2, "pawn", [1,index])
@@ -67,28 +75,13 @@ class Game_Board
     @player_2_pieces[13] = @game_board[0][5].new_piece(2, "bishop", [0,5]) 
     @player_2_pieces[14] = @game_board[0][6].new_piece(2, "knight", [0,6]) 
     @player_2_pieces[15] = @game_board[0][7].new_piece(2, "rook", [0,7])
-    puts "First rook"
-    p @game_board[7][0].piece.valid_moves(@game_board)
-    puts "a bishop"
-    p @game_board[7][2].piece.valid_moves(@game_board)
-    puts "a knight"
-    p @game_board[7][6].piece.valid_moves(@game_board)
-    puts "a queen"
-    p @game_board[0][3].piece.valid_moves(@game_board) 
-    puts "last rook"
-    p @game_board[0][7].piece.valid_moves(@game_board)
-
-    puts "king time"
-    p @game_board[0][4].piece.valid_moves(@game_board)
-
-    puts "pawns"
-    p @game_board[1][4].piece.valid_moves(@game_board)
-    p @game_board[6][0].piece.valid_moves(@game_board)
   end
 
   def move(player,current_loc,new_loc)
     if @game_board[current_loc[0]][current_loc[1]].piece.valid_moves(@game_board).include?(new_loc)
-      
+      if @game_board[new_loc[0]][new_loc[1]].piece != nil
+        captured(player,new_loc)
+      end
       @game_board[new_loc[0]][new_loc[1]] = @game_board[current_loc[0]][current_loc[1]]
       @game_board[current_loc[0]][current_loc[1]] = BoardLoc.new
       if @game_board[new_loc[0]][new_loc[1]].is_a? Pawn
@@ -99,6 +92,11 @@ class Game_Board
       puts "That's not a valid move, try again." 
     end
   end
+
+  def captured(player,loc)
+
+  end
+
 
 
 end
