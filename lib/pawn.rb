@@ -27,13 +27,13 @@ class Pawn
       end
 
       if @position[1] + 1 < 8
-        if game_board[@position[0] + direction][@position[1] + 1].piece != nil && game_board[@position[0] + direction][@position[1] + 1].piece.player != player
+        if game_board[@position[0] + direction][@position[1] + 1].piece && game_board[@position[0] + direction][@position[1] + 1].piece.player != @player
           valid_moves << [@position[0] + direction, @position[1] + 1]
         end
       end
 
       if @position[1] - 1 >= 0
-        if game_board[@position[0] + direction][@position[1] - 1].piece != nil && game_board[@position[0 + direction]][@position[1] - 1].piece.player != player
+        if game_board[@position[0] + direction][@position[1] - 1].piece && game_board[@position[0] + direction][@position[1] - 1].piece.player != @player
           valid_moves << [@position[0] + direction, @position[1] - 1]
         end
       end
@@ -45,13 +45,13 @@ class Pawn
       end
 
       if @position[1] + 1 < 8
-        if game_board[@position[0] + (direction * 2)][@position[1] + 1].piece != nil && game_board[@position[0] + (direction * 2)][@position[1] + 1].piece.player != player
+        if game_board[@position[0] + (direction * 2)][@position[1] + 1].piece != nil && game_board[@position[0] + (direction * 2)][@position[1] + 1].piece.player != @player
           valid_moves << [@position[0] + (direction * 2), @position[1] + 1]
         end
       end
 
       if @position[1] - 1 >= 0
-        if game_board[@position[0] + (direction * 2)][@position[1] - 1].piece != nil && game_board[@position[0] + (direction * 2)][@position[1] - 1].piece.player != player
+        if game_board[@position[0] + (direction * 2)][@position[1] - 1].piece != nil && game_board[@position[0] + (direction * 2)][@position[1] - 1].piece.player != @player
           valid_moves << [@position[0] + (direction * 2), @position[1] - 1]
         end
       end
