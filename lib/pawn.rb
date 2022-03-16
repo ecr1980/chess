@@ -11,30 +11,53 @@ class Pawn
     end
   end
 
-  def move_valid?(player, current_loc, new_loc)
-    if player == 1
-      x = -1
-      y = -2
+  def valid_moves(game_board)
+    if @player == 1
+      direction = -1
     else
-      x = 1
-      y = 2
+      direction = 1
     end
-    if player != @player
-      return false
-    elsif new_loc[0] == current_loc[0] + x && new_loc[1] == current_loc[1]
-      return true
-    elsif @moved == false
-      if new_loc[0] == current_loc[0] + y && new_loc[1] == current_loc[1]
-        return true
-      else
-        return false
-      end
-    else
-      return false
-    end
-  end
+    valid_moves = Array.new()
+    is_open = false
 
-      
-        
+    if @position[0] + direction < 8 && @position[0] + direction >= 0
+      if game_board[@position[0] + direction][@position[1]].piece == nil
+        valid_moves << [@position[0] + direction, @position[1]]
+        is_open = true
+      end
+
+      if @position[1] + 1 < 8
+        if game_board[@position[0] + direction][@position[1] + 1].piece != nil && game_board[@position[0] + direction][@position[1] + 1].piece.player != player
+          valid_moves << [@position[0] + direction, @position[1] + 1]
+        end
+      end
+
+      if @position[1] - 1 >= 0
+        if game_board[@position[0] + direction][@position[1] - 1].piece != nil && game_board[@position[0 + direction]][@position[1] - 1].piece.player != player
+          valid_moves << [@position[0] + direction, @position[1] - 1]
+        end
+      end
+    end
+
+    if is_open == true && @moved == false
+      if game_board[@position[0] + (direction * 2)][@position[1]].piece == nil && @moved == false
+        valid_moves << [@position[0] + (direction * 2), @position[1]]
+      end
+
+      if @position[1] + 1 < 8
+        if game_board[@position[0] + (direction * 2)][@position[1] + 1].piece != nil && game_board[@position[0] + (direction * 2)][@position[1] + 1].piece.player != player
+          valid_moves << [@position[0] + (direction * 2), @position[1] + 1]
+        end
+      end
+
+      if @position[1] - 1 >= 0
+        if game_board[@position[0] + (direction * 2)][@position[1] - 1].piece != nil && game_board[@position[0] + (direction * 2)][@position[1] - 1].piece.player != player
+          valid_moves << [@position[0] + (direction * 2), @position[1] - 1]
+        end
+      end
+    end
+    return valid_moves
+  end      
 
 end
+
