@@ -87,17 +87,17 @@ class Game_Board
   end
 
   def move(player,current_loc,new_loc)
-    move = false
-    while move == false
-     if @game_board[current_loc[0]][current_loc[1]].move_valid?(player,current_loc,new_loc)
-      move = true
-     end
+    if @game_board[current_loc[0]][current_loc[1]].piece.valid_moves(@game_board).include?(new_loc)
+      
+      @game_board[new_loc[0]][new_loc[1]] = @game_board[current_loc[0]][current_loc[1]]
+      @game_board[current_loc[0]][current_loc[1]] = BoardLoc.new
+      if @game_board[new_loc[0]][new_loc[1]].is_a? Pawn
+        @game_board[new_loc[0]][new_loc[1]].moved = true
+      end
+      @game_board[current_loc[0]][current_loc[1]] = BoardLoc.new
+    else
+      puts "That's not a valid move, try again." 
     end
-    @game_board[new_loc[0]][new_loc[1]] = @game_board[current_loc[0]][current_loc[1]]
-    if @game_board[new_loc[0]][new_loc[1]].is_a? Pawn
-      @game_board[new_loc[0]][new_loc[1]].moved = true
-    end
-    @game_board[current_loc[0]][current_loc[1]] = BoardLoc.new
   end
 
 
@@ -130,9 +130,6 @@ class BoardLoc
     @display = " #{@token} "
   end
 
-  def move_valid?(player, current_loc, new_loc)
-    @piece.move_valid?(player, current_loc, new_loc)
-  end
 
 end
 
@@ -140,6 +137,8 @@ def turn(board)
   puts "Please enter the piece you want to move."
   puts "it doesnt matter, I'm just testing a thing."
   move = gets.chomp
+  board.move(1, [7,4], [6,4])
+  board.move(1, [6,4], [4,4])
   board.move(1, [7,4], [6,4])
 end
   
