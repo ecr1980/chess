@@ -1,8 +1,9 @@
 class Rook
-  attr_accessor :player, :position, :token
+  attr_accessor :player, :position, :token, :moved
   def initialize(player, position)
     @player = player
     @position = position
+    @moved = false
     if player == 2
       @token = "\u2656"
     else
