@@ -319,11 +319,11 @@ def letter_conversion(letter)
 end
   
 
-def game_loop
+def game_loop(game)
   player = 1
   while true
-    $start.display
-    turn(player,$start)  
+    game.display
+    turn(player,game)  
     if player == 1
       player = 2
     else
@@ -332,6 +332,38 @@ def game_loop
   end
 end
   
-$start = Game_Board.new()
 
-game_loop()
+def game()
+  puts "Welcome to Chess."
+  puts "Would you like to play:"
+  puts "1. Human vs Human"
+  puts "2. Human vs AI"
+  puts "3. AI vs Human"
+  puts "4. AI vs AI"
+  selection = false
+  while selection == false
+    selection = select_player(gets.chomp)
+  end
+  game = Game_Board.new()
+  game_loop(game)
+end
+
+def select_player(selection)
+  players = Array.new(2)
+  case selection
+  when '1'
+    players = ['human', 'human']
+  when '2'
+    players = ['human', 'ai']
+  when '3'
+    players = ['ai', 'human']
+  when '4'
+    players = ['ai', 'ai']
+  else
+    puts "Please select 1 through 4."
+    return false
+  end
+  return players
+end
+
+game()
