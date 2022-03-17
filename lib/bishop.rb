@@ -16,7 +16,7 @@ class Bishop
     can_move = true
     change = 1
     until can_move == false do
-      if position[0] + change > 7 || position[1] > 7
+      if position[0] + change > 7 || position[1] + change > 7
         can_move = false
       elsif game_board[position[0] + change][position[1] + change].piece == nil
         valid_moves << [position[0] + change,position[1] + change]
