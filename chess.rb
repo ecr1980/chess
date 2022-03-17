@@ -5,15 +5,22 @@ require './lib/bishop'
 require './lib/knight'
 require './lib/rook'
 require './lib/pawn'
+#require './lib/ai'
 
 
 class Game_Board
 
   attr_accessor :game_board
 
-  def initialize
+  def initialize(selection)
+    @selection = selection
     @game_board = Array.new(8) { Array.new(8)}
     board_color = 1
+  #  2.times do |index|
+    #  if @selection[index] == 'ai'
+     #   @selection[index] = AI.new(index + 1)
+    #  end
+   # end
     8.times do |x_index|
       8.times do |y_index|
         @game_board[x_index][y_index] = BoardLoc.new()
@@ -87,22 +94,26 @@ class Game_Board
       return false
     end
     if @game_board[current_loc[0]][current_loc[1]].piece.valid_moves(@game_board).include?(new_loc)
-      update_player_array(player,current_loc,new_loc)
-      @game_board[current_loc[0]][current_loc[1]].piece.position = new_loc
-      if (@game_board[current_loc[0]][current_loc[1]].piece.is_a? Pawn) || (@game_board[current_loc[0]][current_loc[1]].piece.is_a? King) || (@game_board[current_loc[0]][current_loc[1]].piece.is_a? Rook)
-        @game_board[current_loc[0]][current_loc[1]].piece.moved = true
-      end
-
-      if @game_board[new_loc[0]][new_loc[1]].piece != nil
-        captured(player,new_loc)
-      end
-      @game_board[new_loc[0]][new_loc[1]] = @game_board[current_loc[0]][current_loc[1]]
-      @game_board[current_loc[0]][current_loc[1]] = BoardLoc.new
-      
+      move_mechanics(player,current_loc,new_loc)
     else
       puts "You are unable to move there, try again." 
       return false
     end
+  end
+
+  def move_mechanics(player,current_loc,new_loc)
+    update_player_array(player,current_loc,new_loc)
+    @game_board[current_loc[0]][current_loc[1]]
+    @game_board[current_loc[0]][current_loc[1]].piece.position = new_loc
+    if (@game_board[current_loc[0]][current_loc[1]].piece.is_a? Pawn) || (@game_board[current_loc[0]][current_loc[1]].piece.is_a? King) || (@game_board[current_loc[0]][current_loc[1]].piece.is_a? Rook)
+      @game_board[current_loc[0]][current_loc[1]].piece.moved = true
+    end
+
+    if @game_board[new_loc[0]][new_loc[1]].piece != nil
+      captured(player,new_loc)
+    end
+    @game_board[new_loc[0]][new_loc[1]] = @game_board[current_loc[0]][current_loc[1]]
+    @game_board[current_loc[0]][current_loc[1]] = BoardLoc.new
   end
 
   def update_player_array(player,current_loc,new_loc)
@@ -193,12 +204,100 @@ class Game_Board
     return in_check
   end
 
+  def turn(player)
+    if @selection[player - 1] == 'ai'                     #selection array holds human/ai player info
+      if player == 1                                        #if AI, array value is object AI.
+        ai_turn(player, @player_1_pieces)   
+      else
+        ai_turn(player, @player_2_pieces)   
+      end
+    else
+      human_turn(player)
+    end
+  end
 
+  def human_turn(player)
+    puts "Player #{player}, it is your turn."
+    if in_check?(player)
+      puts Rainbow("You are in check! You must fix this.").yellow
+    end
+    continue = false
+    while continue == false
+      entered_piece = false
+      entered_move = false
+      while entered_piece == false
+        puts "Please enter the piece you want to move."
+        entered_piece = gets.chomp
+        entered_piece = move_conversion(entered_piece)
+      end
+      #The move_conversion changes the on screen grid option to proper array
+      while entered_move == false
+        puts "Please enter the new location."
+        entered_move = gets.chomp
+        entered_move = move_conversion(entered_move)
+      end
+      continue = move(player,entered_piece,entered_move)
+      if checkmate?(player)
+        return false
+      end
+    end
+  end
 
+  def ai_turn(player, pieces)
+    move = false
+    pick = Array.new(2)
+    #if player == 1
+      while move == false
+        pick = pieces[rand(pieces.length)]
+        if @game_board[pick[0]][pick[1]].piece.valid_moves(@game_board).length > 0
+          move = @game_board[pick[0]][pick[1]].piece.valid_moves(@game_board)[rand(@game_board[pick[0]][pick[1]].piece.valid_moves(@game_board).length)]
+        end
+      end
+    #end
 
+    #if player == 2
+      #while move == false
+       # pick = @player_2_pieces[rand(@player_2_pieces.length)]
+        #if @game_board[pick[0]][pick[1]].valid_moves
+         # move = @game_board[pick[0]][pick[1]].valid_moves[rand.(@game_board[pick[0]][pick[1]].valid_moves.length)]
+        #end
+      #end
+    #end
+    sleep(1)
+    move_mechanics(player,pick,move)
+  end
 
+  #class AI
 
+   # def initialize(player)
+    #  @player = player
+    #end
+    
+    #def ai_turn(player, pieces, board)
+     # move = false
+      #pick = Array.new(2)
+      #if player == 1
+       # while move == false
+        #  pick = pieces[rand(pieces.length)]
+         # if board[pick[0]][pick[1]].piece.valid_moves(board).length > 0
+          #  move = board[pick[0]][pick[1]].piece.valid_moves(board)[rand(board[pick[0]][pick[1]].piece.valid_moves(board).length)]
+          #end
+        #end
+      #end
 
+      #if player == 2
+        #while move == false
+         # pick = @player_2_pieces[rand(@player_2_pieces.length)]
+          #if @game_board[pick[0]][pick[1]].valid_moves
+           # move = @game_board[pick[0]][pick[1]].valid_moves[rand.(@game_board[pick[0]][pick[1]].valid_moves.length)]
+          #end
+        #end
+      #end
+      #sleep(1)
+      #move_mechanics(player,board[pick[0]][pick[1]],move)
+    #end
+    
+  #end
 end
 
 class BoardLoc
@@ -229,40 +328,32 @@ class BoardLoc
   end
 end
 
-def turn(player,board)
-  puts "Player #{player}, it is your turn."
-  if board.in_check?(player)
-    puts Rainbow("You are in check! You must fix this.").yellow
-  end
-  continue = false
-  while continue == false
-    entered_piece = false
-    entered_move = false
-    while entered_piece == false
-      puts "Please enter the piece you want to move."
-      entered_piece = gets.chomp
-      entered_piece = move_conversion(entered_piece)
-    end
-    #The move_conversion changes the on screen grid option to proper array
-    while entered_move == false
-      puts "Please enter the new location."
-      entered_move = gets.chomp
-      entered_move = move_conversion(entered_move)
-    end
-    continue = board.move(player,entered_piece,entered_move)
-    if board.checkmate?(player)
-      return false
-    end
-  end
-
-
-
-  #board.move(1, [7,4], [6,4])
-  #board.move(1, [6,4], [4,4])
-  #board.move(2, [1,5], [3,5])
-  #board.move(2, [3,5], [4,4])
-  #board.move(1, [7,4], [6,4])
-end
+#def turn(player,board)
+ # puts "Player #{player}, it is your turn."
+  #if board.in_check?(player)
+   # puts Rainbow("You are in check! You must fix this.").yellow
+  #end
+ # continue = false
+ # while continue == false
+  #  entered_piece = false
+   # entered_move = false
+    #while entered_piece == false
+     # puts "Please enter the piece you want to move."
+      #entered_piece = gets.chomp
+      #entered_piece = move_conversion(entered_piece)
+#    end
+ #   #The move_conversion changes the on screen grid option to proper array
+  #  while entered_move == false
+   #   puts "Please enter the new location."
+    #  entered_move = gets.chomp
+     # entered_move = move_conversion(entered_move)
+    #end
+    #continue = board.move(player,entered_piece,entered_move)
+    #if board.checkmate?(player)
+     # return false
+    #end
+  #end
+#end
 
 def move_conversion(loc)
   loc = loc.chars
@@ -323,7 +414,7 @@ def game_loop(game)
   player = 1
   while true
     game.display
-    turn(player,game)  
+    game.turn(player)  
     if player == 1
       player = 2
     else
@@ -344,7 +435,7 @@ def game()
   while selection == false
     selection = select_player(gets.chomp)
   end
-  game = Game_Board.new()
+  game = Game_Board.new(selection)
   game_loop(game)
 end
 
