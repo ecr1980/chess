@@ -5,12 +5,12 @@ require './lib/bishop'
 require './lib/knight'
 require './lib/rook'
 require './lib/pawn'
-#require './lib/ai'
 
 
 class Game_Board
 
-  attr_accessor :game_board
+  attr_accessor :game_board, :player_1_pieces, :player_2_pieces, :player_1_captured_nobals,
+  :player_2_captured_nobals, :player_1_captured_pawns, :player_2_captured_pawns
 
   def initialize(selection)
     @selection = selection
@@ -111,24 +111,23 @@ class Game_Board
         entered_move = gets.chomp
         entered_move = move_conversion(entered_move)
       end
-      if 
       continue = move(player,entered_piece,entered_move)
       if checkmate?(player)
         return false
       end
     end
+    return true
   end
 
   def ai_turn(player, pieces)
     move = false
     pick = Array.new(2)
-    #if player == 1
-      while move == false
-        pick = pieces[rand(pieces.length)]
-        if @game_board[pick[0]][pick[1]].piece.valid_moves(@game_board).length > 0
-          move = @game_board[pick[0]][pick[1]].piece.valid_moves(@game_board)[rand(@game_board[pick[0]][pick[1]].piece.valid_moves(@game_board).length)]
-        end
+    while move == false
+      pick = pieces[rand(pieces.length)]
+      if @game_board[pick[0]][pick[1]].piece.valid_moves(@game_board).length > 0
+        move = @game_board[pick[0]][pick[1]].piece.valid_moves(@game_board)[rand(@game_board[pick[0]][pick[1]].piece.valid_moves(@game_board).length)]
       end
+    end
     sleep(1)
     move_mechanics(player,pick,move)
   end
@@ -136,54 +135,79 @@ class Game_Board
 
   #THIS SECTION DEFINES MOVEMENT BEHAVOIR
 
-  def move(player,current_loc,new_loc)
-    if @game_board[current_loc[0]][current_loc[1]].piece == nil
+
+    #board is included to check potential moves in the future without actually
+    #moving pieces. @game_board is default.
+  def move(player,current_loc,new_loc,board = self)
+    #The first two if statesments check for specific invalid move types
+    #and are placed first to avoid unneccisary computation and error catching
+    #for nil.
+    if board.game_board.current_loc[0]][current_loc[1]].piece == nil
       puts "Your piece selection didn't have a piece."
       return false
     end
-    if player != @game_board[current_loc[0]][current_loc[1]].piece.player
+    if player != board.game_board[current_loc[0]][current_loc[1]].piece.player
       puts "You can't move your opponent's piece."
       return false
     end
-    if @game_board[current_loc[0]][current_loc[1]].piece.valid_moves(@game_board).include?(new_loc)
-      move_mechanics(player,current_loc,new_loc)
+    #This sends the valid move to be completed.
+    if board.game_board[current_loc[0]][current_loc[1]].piece.valid_moves(board).include?(new_loc)
+      move_mechanics(player,current_loc,new_loc,board)
+    #Else catches all invalid moves of a valid piece.
     else
       puts "You are unable to move there, try again." 
       return false
     end
   end
 
-  def move_mechanics(player,current_loc,new_loc)
-    update_player_array(player,current_loc,new_loc)
-    @game_board[current_loc[0]][current_loc[1]]
-    @game_board[current_loc[0]][current_loc[1]].piece.position = new_loc
-    if (@game_board[current_loc[0]][current_loc[1]].piece.is_a? Pawn) || (@game_board[current_loc[0]][current_loc[1]].piece.is_a? King) || (@game_board[current_loc[0]][current_loc[1]].piece.is_a? Rook)
-      @game_board[current_loc[0]][current_loc[1]].piece.moved = true
-    end
 
-    if @game_board[new_loc[0]][new_loc[1]].piece != nil
-      captured(player,new_loc)
+    #makes the changes to move the piece on the board, updating move if
+    #appropriate, and removing the other player's piece if one was captured
+  def move_mechanics(player,current_loc,new_loc,board)
+    update_player_array(player,current_loc,new_loc,board)
+    #board[current_loc[0]][current_loc[1]] // commented out for test.
+    board.game_board[current_loc[0]][current_loc[1]].piece.position = new_loc
+    #movement for certain pieces rules out future moves. Nested inside a check
+    #to make sure it is not simply testing future moves.
+    if board == self
+      if (board.game_board[current_loc[0]][current_loc[1]].piece.is_a? Pawn) || (board.game_board[current_loc[0]][current_loc[1]].piece.is_a? King) || (board.game_board[current_loc[0]][current_loc[1]].piece.is_a? Rook)
+        board.game_board[current_loc[0]][current_loc[1]].piece.moved = true
+      end
     end
-    @game_board[new_loc[0]][new_loc[1]] = @game_board[current_loc[0]][current_loc[1]]
-    @game_board[current_loc[0]][current_loc[1]] = BoardLoc.new
+    #check to see if a piece has been captured and adds it to the captured
+    #array for player display. Not needed for testing new moves so only used
+    #for actual moves.
+    if board != self && board[new_loc[0]][new_loc[1]].piece != nil 
+      captured(player,new_loc,board)
+    end
+    #updates the new location with the moved piece, and empties the
+    #old location.
+    board[new_loc[0]][new_loc[1]] = board[current_loc[0]][current_loc[1]]
+    board[current_loc[0]][current_loc[1]] = BoardLoc.new
   end
 
-  def update_player_array(player,current_loc,new_loc)
+
+    #player array is used to check for check and checkmate, as well
+    #as the AI's turn. This updates those arrays after each move.
+  def update_player_array(player,current_loc,new_loc,board)
     if player == 1
-      @player_1_pieces.delete(current_loc)
-      @player_1_pieces << new_loc
+      board.player_1_pieces.delete(current_loc)
+      board.player_1_pieces << new_loc
     else
-      @player_2_pieces.delete(current_loc)
-      @player_2_pieces << new_loc
+      board.player_2_pieces.delete(current_loc)
+      board.player_2_pieces << new_loc
     end
   end
 
-  def captured(player,loc,temp_piece = nil)
+
+    #updates the array used to display the player's captured pieces.
+    #UI only, it does not affect game logic.
+  def captured(player,loc)
     if player == 1
       if @game_board[loc[0]][loc[1]].is_a? Pawn
-        @player_2_captured_pawns << @game_board[loc[0]][loc[1]].piece.token
+        @player_2_captured_pawns << board[loc[0]][loc[1]].piece.token
       else
-        @player_2_captured_nobals << @game_board[loc[0]][loc[1]].piece.token
+        @player_2_captured_nobals << board[loc[0]][loc[1]].piece.token
       end
       @player_2_pieces.delete(loc)
     else
@@ -196,6 +220,8 @@ class Game_Board
     end
   end
 
+
+  
   #THIS SECTION DEFINES CHECK / CHECKMATE BEHAVIOR
 
   def in_check?(player)
@@ -231,23 +257,28 @@ class Game_Board
     end
   end
 
-  def will_check(player)
+  def error_check
+    puts "Howdy ho."
+  end
+
+  def will_check?(player)
     in_check = true
     if player == 1
-      player_1_pieces.length.times do |i|
-        @game_board[@player_1_pieces[index][0]][@player_1_pieces[index][1]].piece.valid_moves.length.times do |j|
+      @player_1_pieces.length.times do |i|
+        @game_board[@player_1_pieces[i][0]][@player_1_pieces[i][1]].piece.valid_moves(@game_board).length.times do |j|
           temp_game_board = @game_board.dup
-          temp_game_board.move(player,player_1_pieces[i], @game_board[@player_1_pieces[index][0]][@player_1_pieces[index][1]].piece.valid_moves[j])
+          temp_game_board.move(player,@player_1_pieces[i], @game_board[@player_1_pieces[i][0]][@player_1_pieces[i][1]].piece.valid_moves(@game_board)[j])
           if temp_game_board.in_check?(1) == false
             in_check = false
           end
         end
       end
     else
-      player_2_pieces.length.times do |i|
-        @game_board[@player_2_pieces[index][0]][@player_2_pieces[index][1]].piece.valid_moves.length.times do |j|
-          temp_game_board = @game_board.dup
-          temp_game_board.move(player,player_2_pieces[i], @game_board[@player_2_pieces[index][0]][@player_2_pieces[index][1]].piece.valid_moves[j])
+      @player_2_pieces.length.times do |i|
+        @game_board[@player_2_pieces[i][0]][@player_2_pieces[i][1]].piece.valid_moves(@game_board).length.times do |j|
+          temp_game_board = self.dup
+          temp_game_board.error_check
+          temp_game_board.move(player,@player_2_pieces[i], @game_board[@player_2_pieces[i][0]][@player_2_pieces[i][1]].piece.valid_moves(@game_board)[j])
           if temp_game_board.in_check?(2) == false
             in_check = false
           end
@@ -349,9 +380,10 @@ end
 
 def game_loop(game)
   player = 1
-  while game.turn
+  keep_playing = true
+  while keep_playing
     game.display
-    game.turn(player)  
+    keep_playing = game.turn(player)  
     if player == 1
       player = 2
     else
