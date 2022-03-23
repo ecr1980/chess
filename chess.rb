@@ -59,7 +59,7 @@ class Game_Board
   end
 
   def display
-    puts "#{@player_1_captured_nobals.join(' ')}"
+    puts "\n\n#{@player_1_captured_nobals.join(' ')}"
     puts "#{@player_1_captured_pawns.join(' ')}"
     puts "      A     B     C     D     E     F     G     H"
     8.times do |x_index|
@@ -75,7 +75,7 @@ class Game_Board
       puts "   " + Rainbow("      ").bg(color_a) + Rainbow("      ").bg(color_b) + Rainbow("      ").bg(color_a) + Rainbow("      ").bg(color_b) + Rainbow("      ").bg(color_a) + Rainbow("      ").bg(color_b) + Rainbow("      ").bg(color_a) + Rainbow("      ").bg(color_b)
     end
     puts "#{@player_2_captured_nobals.join(' ')}"
-    puts "#{@player_2_captured_pawns.join(' ')}"
+    puts "#{@player_2_captured_pawns.join(' ')}\n\n"
   end
 
   #THIS SECTION DEFINES TURN BEHAVIOR
@@ -164,7 +164,7 @@ class Game_Board
 
     #makes the changes to move the piece on the board, updating move if
     #appropriate, and removing the other player's piece if one was captured
-  def move_mechanics(player,current_loc,new_loc,board)
+  def move_mechanics(player,current_loc,new_loc,board = self)
     update_player_array(player,current_loc,new_loc,board)
     board.game_board[current_loc[0]][current_loc[1]].piece.position = new_loc
     #movement for certain pieces rules out future moves. Nested inside a check
@@ -212,14 +212,14 @@ class Game_Board
     #UI only, it does not affect game logic.
   def captured(player,loc)
     if player == 1
-      if @game_board[loc[0]][loc[1]].is_a? Pawn
+      if @game_board[loc[0]][loc[1]].piece.is_a? Pawn
         @player_2_captured_pawns << @game_board[loc[0]][loc[1]].piece.token
       else
         @player_2_captured_nobals << @game_board[loc[0]][loc[1]].piece.token
       end
       @player_2_pieces.delete(loc)
     else
-      if @game_board[loc[0]][loc[1]].is_a? Pawn
+      if @game_board[loc[0]][loc[1]].piece.is_a? Pawn
         @player_1_captured_pawns << @game_board[loc[0]][loc[1]].piece.token
       else
         @player_1_captured_nobals << @game_board[loc[0]][loc[1]].piece.token
@@ -259,7 +259,6 @@ class Game_Board
         end
       end
     end
-    p valid_moves.compact
     return false
   end
 
@@ -287,11 +286,6 @@ class Game_Board
           temp_game_board = Marshal.load(Marshal.dump(self))
           temp_game_board.move(player,[@player_1_pieces[i][0],@player_1_pieces[i][1]], @game_board[@player_1_pieces[i][0]][@player_1_pieces[i][1]].piece.valid_moves(@game_board)[j])
           if temp_game_board.in_check?(1) == false
-            puts "this should be the out"
-            p player
-            p player_1_pieces[i]
-            p [player_1_pieces[i][0],player_1_pieces[i][1]]
-            p@game_board[@player_1_pieces[i][0]][@player_1_pieces[i][1]].piece.valid_moves(@game_board)[j]
             in_check = false
           end
         end
@@ -302,11 +296,6 @@ class Game_Board
           temp_game_board = Marshal.load(Marshal.dump(self))
           temp_game_board.move(player,[@player_2_pieces[i][0],@player_2_pieces[i][1]], @game_board[@player_2_pieces[i][0]][@player_2_pieces[i][1]].piece.valid_moves(@game_board)[j])
           if temp_game_board.in_check?(2) == false
-            puts "found a way out."
-            p player
-            p player_2_pieces[i]
-            p [player_2_pieces[i][0],player_2_pieces[i][1]]
-            p@game_board[@player_2_pieces[i][0]][@player_2_pieces[i][1]].piece.valid_moves(@game_board)[j]
             in_check = false
           end
         end
