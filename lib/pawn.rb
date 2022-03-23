@@ -56,7 +56,7 @@ class Pawn
         end
       end
     end
-    return valid_moves
+    return valid_moves.compact
   end      
 
 end
