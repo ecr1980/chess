@@ -113,7 +113,7 @@ class Game_Board
         entered_move = move_conversion(entered_move)
       end
       continue = move(player,entered_piece,entered_move)
-      if checkmate?(player)
+      if continue == true && checkmate?(player)
         return false
       end
     end
@@ -153,7 +153,10 @@ class Game_Board
     end
     #This sends the valid move to be completed.
     if board.game_board[current_loc[0]][current_loc[1]].piece.valid_moves(board.game_board).include?(new_loc)
-      move_mechanics(player,current_loc,new_loc,board)
+      if move_mechanics(player,current_loc,new_loc,board) == false
+        puts "That would put you in check."
+        return false
+      end
     #Else catches all invalid moves of a valid piece.
     else
       puts "You are unable to move there, try again." 
@@ -165,15 +168,16 @@ class Game_Board
     #makes the changes to move the piece on the board, updating move if
     #appropriate, and removing the other player's piece if one was captured
   def move_mechanics(player,current_loc,new_loc,board = self)
-    update_player_array(player,current_loc,new_loc,board)
-    board.game_board[current_loc[0]][current_loc[1]].piece.position = new_loc
-    #movement for certain pieces rules out future moves. Nested inside a check
-    #to make sure it is not simply testing future moves.
-    if board == self
-      if (board.game_board[current_loc[0]][current_loc[1]].piece.is_a? Pawn) || (board.game_board[current_loc[0]][current_loc[1]].piece.is_a? King) || (board.game_board[current_loc[0]][current_loc[1]].piece.is_a? Rook)
-        board.game_board[current_loc[0]][current_loc[1]].piece.moved = true
-      end
+
+    if board.game_board[new_loc[0]][new_loc[1]].piece != nil
+      was_captured = true
+      temp = board.game_board[new_loc[0]][new_loc[1]].piece
+    else
+      was_captured = false
     end
+
+    
+
     #update king location
     if board.game_board[current_loc[0]][current_loc[1]].piece.is_a? King
       if player == 1
@@ -186,16 +190,38 @@ class Game_Board
     #old location.
     board.game_board[new_loc[0]][new_loc[1]] = board.game_board[current_loc[0]][current_loc[1]]
     board.game_board[current_loc[0]][current_loc[1]] = BoardLoc.new
+    if in_check?(player)
+      puts "Checking in check."
+      board.game_board[current_loc[0]][current_loc[1]] = board.game_board[new_loc[0]][new_loc[1]]
+      board.game_board[new_loc[0]][new_loc[1]] = BoardLoc.new
+      board.display
+      if player == 1
+        @p_1_king = current_loc
+      else
+        @p_2_king = current_loc
+      end
+      p temp
+      board.game_board[new_loc[0]][new_loc[1]].piece = temp
+      return false
+    end
+    update_player_array(player,current_loc,new_loc,board, was_captured)
+    board.game_board[new_loc[0]][new_loc[1]].piece.position = new_loc
+    if board == self
+      if (board.game_board[new_loc[0]][new_loc[1]].piece.is_a? Pawn) || (board.game_board[new_loc[0]][new_loc[1]].piece.is_a? King) || (board.game_board[new_loc[0]][new_loc[1]].piece.is_a? Rook)
+        board.game_board[new_loc[0]][new_loc[1]].piece.moved = true
+      end
+    end
+      
   end
 
 
     #player array is used to check for check and checkmate, as well
     #as the AI's turn. This updates those arrays after each move.
-  def update_player_array(player,current_loc,new_loc,board)
+  def update_player_array(player,current_loc,new_loc,board, was_captured)
     #check to see if a piece has been captured and adds it to the captured
     #array for player display. Not needed for testing new moves so only used
     #for actual moves.
-    if board == self && board.game_board[new_loc[0]][new_loc[1]].piece != nil 
+    if board == self && was_captured == true 
       captured(player,new_loc)
     end
     if player == 1
