@@ -16,7 +16,7 @@ class Game_Board
   def initialize(selection)
     @selection = selection
     @game_board = Array.new(8) { Array.new(8)}
-    @turn_counter = 0
+    @turn_counter = -0.5
     board_color = 1
     8.times do |x_index|
       8.times do |y_index|
@@ -82,6 +82,11 @@ class Game_Board
   #THIS SECTION DEFINES TURN BEHAVIOR
 
   def turn(player)
+    @turn_counter += 0.5
+    if @turn_counter == 50
+      puts Rainbow("The game has ended in a draw.").yellow
+      return false
+    end
     if @selection[player - 1] == 'ai'                     #selection array holds human/ai player info
       if player == 1                                        #if AI, array value is object AI.
         ai_turn(player, @player_1_pieces)   
@@ -91,12 +96,6 @@ class Game_Board
     else
       human_turn(player)
     end
-    @turn_counter += 0.5
-    if @turn_counter == 50
-      puts Rainbow("The game has ended in a draw.").yellow
-      return false
-    end
-    return true
   end
 
   def human_turn(player)
@@ -171,12 +170,48 @@ class Game_Board
         end
         return false
       end
+
     #Else catches all invalid moves of a valid piece.
     else
       puts "You are unable to move there, try again." 
       return false
     end
   end
+
+  def pawn_switch(player, location)
+    #AI logic - AI should choose a knight if it would result in checkmate, otherwise 
+    #it will choose a queen.
+    if @selection[player - 1] == 'ai'
+      @game_board[location[0]][location[1]].new_piece(player, "knight", location)
+      unless checkmate?(player)
+        @game_board[location[0]][location[1]].new_piece(player, "queen", location)
+      end
+    else
+      promotion = ""
+      until (promotion == 'rook' || promotion == 'knight' || promotion == 'bishop' || promotion == 'queen') do
+        puts "Your pawn has reached the opponent's side, please select your promotion."
+        puts "Rook, Knight, Bishop, or Queen."
+        promotion = gets.downcase.chomp
+        unless (promotion == 'rook' || promotion == 'knight' || promotion == 'bishop' || promotion == 'queen')
+          puts "I'm sorry, I didn't understand that, please try again."
+        end
+      end
+
+      case promotion
+      when 'rook'
+        @game_board[location[0]][location[1]].new_piece(player, "rook", location)
+        game_board[location[0]][location[1]].piece.moved = true
+      when 'knight'
+        @game_board[location[0]][location[1]].new_piece(player, "knight", location)
+      when 'bishop'
+        @game_board[location[0]][location[1]].new_piece(player, "bishop", location)
+      when 'queen'
+        @game_board[location[0]][location[1]].new_piece(player, "queen", location)
+      end
+    end
+  end
+
+
 
 
     #makes the changes to move the piece on the board, updating move if
@@ -232,6 +267,13 @@ class Game_Board
     #turn counter // a draw may be declared after 50 turns from the last capture or pawn move.
     if board.game_board[new_loc[0]][new_loc[1]].piece.is_a? Pawn
       @turn_counter = -0.5
+    end
+
+    #pawn switch switches the pawn to a new piece once it reaches the end.
+    if new_loc[0] == 0 || new_loc[0] == 7
+      if board.game_board[new_loc[0]][new_loc[1]].piece.is_a? Pawn
+        pawn_switch(player,new_loc)
+      end
     end
       
     return true
