@@ -16,6 +16,7 @@ class Game_Board
   def initialize(selection)
     @selection = selection
     @game_board = Array.new(8) { Array.new(8)}
+    @turn_counter = 0
     board_color = 1
     8.times do |x_index|
       8.times do |y_index|
@@ -90,6 +91,12 @@ class Game_Board
     else
       human_turn(player)
     end
+    @turn_counter += 0.5
+    if @turn_counter == 50
+      puts Rainbow("The game has ended in a draw.").yellow
+      return false
+    end
+    return true
   end
 
   def human_turn(player)
@@ -127,10 +134,15 @@ class Game_Board
       pick = pieces[rand(pieces.length)]
       if @game_board[pick[0]][pick[1]].piece.valid_moves(@game_board).length > 0
         move = @game_board[pick[0]][pick[1]].piece.valid_moves(@game_board)[rand(@game_board[pick[0]][pick[1]].piece.valid_moves(@game_board).length)]
+        unless move_mechanics(player,pick,move)
+          move = false
+        end
       end
     end
-    sleep(1)
-    move_mechanics(player,pick,move)
+    if checkmate?(player)
+      return false
+    end
+    sleep(0.1)
   end
 
 
@@ -154,7 +166,9 @@ class Game_Board
     #This sends the valid move to be completed.
     if board.game_board[current_loc[0]][current_loc[1]].piece.valid_moves(board.game_board).include?(new_loc)
       if move_mechanics(player,current_loc,new_loc,board) == false
+        if @selection[player - 1] != 'ai'
         puts "That would put you in check."
+        end
         return false
       end
     #Else catches all invalid moves of a valid piece.
@@ -168,15 +182,12 @@ class Game_Board
     #makes the changes to move the piece on the board, updating move if
     #appropriate, and removing the other player's piece if one was captured
   def move_mechanics(player,current_loc,new_loc,board = self)
-
     if board.game_board[new_loc[0]][new_loc[1]].piece != nil
-      was_captured = true
+      was_captured = board.game_board[new_loc[0]][new_loc[1]].piece.token
       temp = board.game_board[new_loc[0]][new_loc[1]].piece
     else
-      was_captured = false
+      was_captured = nil
     end
-
-    
 
     #update king location
     if board.game_board[current_loc[0]][current_loc[1]].piece.is_a? King
@@ -190,39 +201,50 @@ class Game_Board
     #old location.
     board.game_board[new_loc[0]][new_loc[1]] = board.game_board[current_loc[0]][current_loc[1]]
     board.game_board[current_loc[0]][current_loc[1]] = BoardLoc.new
+
+    #The following reverses any changes made thus far if the move puts the player in check, and 
+    #returns false to continue move selection.
     if in_check?(player)
-      puts "Checking in check."
       board.game_board[current_loc[0]][current_loc[1]] = board.game_board[new_loc[0]][new_loc[1]]
       board.game_board[new_loc[0]][new_loc[1]] = BoardLoc.new
-      board.display
-      if player == 1
-        @p_1_king = current_loc
-      else
-        @p_2_king = current_loc
+      if board.game_board[current_loc[0]][current_loc[1]].piece.is_a? King
+        if player == 1
+          @p_1_king = current_loc
+        else
+          @p_2_king = current_loc
+        end
       end
-      p temp
       board.game_board[new_loc[0]][new_loc[1]].piece = temp
       return false
     end
-    update_player_array(player,current_loc,new_loc,board, was_captured)
-    board.game_board[new_loc[0]][new_loc[1]].piece.position = new_loc
+
+
     if board == self
       if (board.game_board[new_loc[0]][new_loc[1]].piece.is_a? Pawn) || (board.game_board[new_loc[0]][new_loc[1]].piece.is_a? King) || (board.game_board[new_loc[0]][new_loc[1]].piece.is_a? Rook)
         board.game_board[new_loc[0]][new_loc[1]].piece.moved = true
       end
     end
+
+
+    update_player_array(player,current_loc,new_loc,board, was_captured)
+    board.game_board[new_loc[0]][new_loc[1]].piece.position = new_loc
+
+    #turn counter // a draw may be declared after 50 turns from the last capture or pawn move.
+    if board.game_board[new_loc[0]][new_loc[1]].piece.is_a? Pawn
+      @turn_counter = -0.5
+    end
       
+    return true
   end
 
 
     #player array is used to check for check and checkmate, as well
     #as the AI's turn. This updates those arrays after each move.
   def update_player_array(player,current_loc,new_loc,board, was_captured)
-    #check to see if a piece has been captured and adds it to the captured
-    #array for player display. Not needed for testing new moves so only used
-    #for actual moves.
-    if board == self && was_captured == true 
-      captured(player,new_loc)
+    if board == self && was_captured != nil 
+      captured(player, new_loc, was_captured)
+      #turn counter // a draw may be declared after 50 turns from the last capture or pawn move.
+      @turn_counter = -0.5
     end
     if player == 1
       board.player_1_pieces.delete(current_loc)
@@ -236,21 +258,25 @@ class Game_Board
 
     #updates the array used to display the player's captured pieces.
     #UI only, it does not affect game logic.
-  def captured(player,loc)
+  def captured(player, loc, was_captured)
     if player == 1
-      if @game_board[loc[0]][loc[1]].piece.is_a? Pawn
-        @player_2_captured_pawns << @game_board[loc[0]][loc[1]].piece.token
+      if was_captured == "\u2659"
+        @player_2_captured_pawns << was_captured
       else
-        @player_2_captured_nobals << @game_board[loc[0]][loc[1]].piece.token
+        @player_2_captured_nobals << was_captured
       end
       @player_2_pieces.delete(loc)
     else
-      if @game_board[loc[0]][loc[1]].piece.is_a? Pawn
-        @player_1_captured_pawns << @game_board[loc[0]][loc[1]].piece.token
+      if was_captured == "\u265F"
+        @player_1_captured_pawns << was_captured
       else
-        @player_1_captured_nobals << @game_board[loc[0]][loc[1]].piece.token
+        @player_1_captured_nobals << was_captured
       end
       @player_1_pieces.delete(loc)
+    end
+    if was_captured == "\u2654" || was_captured == "\u265A"
+      puts "Error: King caputred. #{was_captured}"
+      sleep(2000)
     end
   end
 
