@@ -17,6 +17,7 @@ class Game_Board
     @selection = selection
     @game_board = Array.new(8) { Array.new(8)}
     @turn_counter = -0.5
+    @en_passant_decay = 0.0
     board_color = 1
     8.times do |x_index|
       8.times do |y_index|
@@ -83,6 +84,9 @@ class Game_Board
 
   def turn(player)
     @turn_counter += 0.5
+    if @en_passant_decay > 0
+      @en_passant_decay -= 0.5
+    end
     if @turn_counter == 50 || (@player_1_pieces.length == 1 && @player_2_pieces.length == 1)
       puts Rainbow("The game has ended in a draw.").yellow
       return false
@@ -99,6 +103,7 @@ class Game_Board
   end
 
   def human_turn(player)
+    disable_en_passant(player)
     puts "Player #{player}, it is your turn."
     if in_check?(player)
       puts Rainbow("You are in check! You must fix this.").yellow
@@ -127,7 +132,7 @@ class Game_Board
   end
 
   def ai_turn(player, pieces)
-
+    disable_en_passant(player)
     checkmate_moves = Array.new
     check_moves = Array.new
     queen_moves = Array.new
@@ -246,7 +251,19 @@ class Game_Board
 
   end
 
+  def disable_en_passant(player)
+    if player == 1
+      player_pieces = @player_1_pieces
+    else
+      player_pieces = @player_2_pieces
+    end
 
+    player_pieces.length.times do |piece|
+      if @game_board[player_pieces[piece][0]][player_pieces[piece][1]].piece.is_a? Pawn
+        @game_board[player_pieces[piece][0]][player_pieces[piece][1]].piece.en_passant_vulnerable = false
+      end
+    end
+  end
 
 
   #THIS SECTION DEFINES MOVEMENT BEHAVOIR
