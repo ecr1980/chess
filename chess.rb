@@ -127,26 +127,7 @@ class Game_Board
   end
 
   def ai_turn(player, pieces)
-    #move = false
-    #pick = Array.new(2)
-    #while move == false
-      #pick = pieces[rand(pieces.length)]
-      #if @game_board[pick[0]][pick[1]].piece.valid_moves(@game_board).length > 0
-        #move = @game_board[pick[0]][pick[1]].piece.valid_moves(@game_board)[rand(@game_board[pick[0]][pick[1]].piece.valid_moves(@game_board).length)]
-        #unless move_mechanics(player,pick,move)
-          #move = false
-        #end
-      #end
-    #end
-    #if checkmate?(player)
-      #return false
-    #end
-    #sleep(0.1)
 
-    ##OVERHAULLING AI## AI was just choosing random valid moves, and forced to try again if 
-    #the move would put it in check. The AI needs to prioritize possible moves, and to 
-    #stalemate if no valid moves exist. Code below this text is for the overhaul. All code above
-    #is the old code, which will be commented out, and then deleted after testing.
     checkmate_moves = Array.new
     check_moves = Array.new
     queen_moves = Array.new
@@ -154,17 +135,15 @@ class Game_Board
     pawn_moves = Array.new
     non_catch_moves = Array.new
     good_move = false
-    #sleep(0.1)
+    used = false
+    #sleep(1)
     if player == 1
       @player_1_pieces.length.times do |pieces_index|
         @game_board[@player_1_pieces[pieces_index][0]][@player_1_pieces[pieces_index][1]].piece.valid_moves(@game_board).length.times do |moves_index|
           potential_move = @game_board[@player_1_pieces[pieces_index][0]][@player_1_pieces[pieces_index][1]].piece.valid_moves(@game_board)[moves_index]
-          #if it checkmates
-            #checkmate_moves << potential_move
-          #elsif it checks
-            #check_moves << potential_move
-          #elsif instead of if on the line below
-          if @game_board[potential_move[0]][potential_move[1]].piece.is_a? Queen
+          if @game_board[@player_1_pieces[pieces_index][0]][@player_1_pieces[pieces_index][1]].piece.deep_moves(@game_board, potential_move).include?(@p_2_king)
+              check_moves << [@player_1_pieces[pieces_index], potential_move]
+          elsif @game_board[potential_move[0]][potential_move[1]].piece.is_a? Queen
             queen_moves << [@player_1_pieces[pieces_index], potential_move]
           elsif (@game_board[potential_move[0]][potential_move[1]].piece.is_a? Bishop) || (@game_board[potential_move[0]][potential_move[1]].piece.is_a? Knight) || (@game_board[potential_move[0]][potential_move[1]].piece.is_a? Rook)
             nobal_moves << [@player_1_pieces[pieces_index], potential_move]
@@ -173,7 +152,7 @@ class Game_Board
           else
             non_catch_moves << [@player_1_pieces[pieces_index], potential_move]
           end
-        end
+        end         
       end
 
       #adding castling
@@ -190,12 +169,9 @@ class Game_Board
       @player_2_pieces.length.times do |pieces_index|
         @game_board[@player_2_pieces[pieces_index][0]][@player_2_pieces[pieces_index][1]].piece.valid_moves(@game_board).length.times do |moves_index|
           potential_move = @game_board[@player_2_pieces[pieces_index][0]][@player_2_pieces[pieces_index][1]].piece.valid_moves(@game_board)[moves_index]
-          #if it checkmates
-            #checkmate_moves << potential_move
-          #elsif it checks
-            #check_moves << potential_move
-          #elsif instead of if on the line below
-          if @game_board[potential_move[0]][potential_move[1]].piece.is_a? Queen
+          if @game_board[@player_2_pieces[pieces_index][0]][@player_2_pieces[pieces_index][1]].piece.deep_moves(@game_board, potential_move).include?(@p_1_king)
+              check_moves << [@player_2_pieces[pieces_index], potential_move]
+          elsif @game_board[potential_move[0]][potential_move[1]].piece.is_a? Queen
             queen_moves << [@player_2_pieces[pieces_index], potential_move]
           elsif (@game_board[potential_move[0]][potential_move[1]].piece.is_a? Bishop) || (@game_board[potential_move[0]][potential_move[1]].piece.is_a? Knight) || (@game_board[potential_move[0]][potential_move[1]].piece.is_a? Rook)
             nobal_moves << [@player_2_pieces[pieces_index], potential_move]
@@ -204,7 +180,7 @@ class Game_Board
           else
             non_catch_moves << [@player_2_pieces[pieces_index], potential_move]
           end
-        end
+        end         
       end
 
       #adding castling
@@ -226,7 +202,6 @@ class Game_Board
       elsif check_moves.length != 0
         pick = check_moves[rand(check_moves.length)]
         self_check = 2
-        #puts "check?"
       elsif queen_moves.length != 0
         pick = queen_moves[rand(queen_moves.length)]
         self_check = 3
@@ -280,17 +255,17 @@ class Game_Board
     #board is included to check potential moves in the future without actually
     #moving pieces. @game_board is default.
   def move(player,current_loc,new_loc,board = self)
-    #The first two if statesments check for specific invalid move types
-    #and are placed first to avoid unneccisary computation and error catching
-    #for nil.
+   
     if board.game_board[current_loc[0]][current_loc[1]].piece == nil
       puts "Your piece selection didn't have a piece."
       return false
     end
+
     if player != board.game_board[current_loc[0]][current_loc[1]].piece.player
       puts "You can't move your opponent's piece."
       return false
     end
+
     #This sends the valid move to be completed.
     if board.game_board[current_loc[0]][current_loc[1]].piece.valid_moves(board.game_board).include?(new_loc)
       if move_mechanics(player,current_loc,new_loc,board) == false
