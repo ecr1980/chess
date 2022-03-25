@@ -146,10 +146,12 @@ class Game_Board
     if player == 1
       player_pieces = player_1_pieces
       castle_row = 7
+      en_passant_row = 3
       other_king = @p_2_king
     else
       player_pieces = player_2_pieces
       castle_row = 0
+      en_passant_row = 4
       other_king = @p_1_king
     end
 
@@ -179,6 +181,27 @@ class Game_Board
         non_catch_moves << [[castle_row,7], "castle"]
       end
     end
+
+    #adding en passant. Special note, unlike castling, the full move is not entirely determined by the
+    #location of the pawn in question. A + or - has been added to the en passant string to tell the 
+    #movement mechanics method which pawn is being taken in the move.
+    if @en_passant_decay > 0
+      8.times do |i|
+        if player_pieces.include?([en_passant_row,i]) && (@game_board[en_passant_row][i].piece.is_a? Pawn)
+          if (i - 1 >= 0) && (@game_board[en_passant_row][i-1].piece.is_a? Pawn)
+            unless player_pieces.include?([en_passant_row,i-1]) || (@game_board[en_passant_row][i-1].piece.en_passant_vulnerable == false)
+              pawn_moves << [[en_passant_row,i], "en passant-"]
+            end
+          elsif (i + 1 < 8) && (@game_board[en_passant_row][i+1].piece.is_a? Pawn)
+            unless player_pieces.include?([en_passant_row,i+1]) || (@game_board[en_passant_row][i+1].piece.en_passant_vulnerable == false)
+              pawn_moves << [[en_passant_row,i], "en passant+"]
+            end
+          end
+        end
+      end
+    end
+
+
     
     while good_move == false
       if checkmate_moves.length != 0
