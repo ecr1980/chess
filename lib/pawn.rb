@@ -11,6 +11,17 @@ class Pawn
     end
   end
 
+  def deep_moves(game_board,future_move)
+    deep_moves = Array.new()
+    original_position = @position
+    @position = future_move
+    self.valid_moves(game_board).length.times do |index|
+      deep_moves << self.valid_moves(game_board)[index]
+    end
+    @position = original_position
+    return deep_moves.compact
+  end
+
   def valid_moves(game_board)
     if @player == 1
       direction = -1
