@@ -335,8 +335,12 @@ class Game_Board
   end
 
   def castle_mechanics(loc, enemey_moves, board)
+    #loc is the location of the rook that will be involved. Since castling requires that neither rook
+    #nor king has been moved, knowing the rook's location tells us both the player, and the king's location.
 
-    #a, b, and c are just for coordinates that are related to loc[1]
+    #a and b are just for coordinates that are related to loc[1]
+    #a is closest to the king and the rook's new spot.
+    #b is 2 from the king and the king's new spot.
     if loc[1] == 0
       a = 3
       b = 2
@@ -345,7 +349,7 @@ class Game_Board
       b = 6
     end
 
-    if enemey_moves.include?([loc[0],loc[1]]) || enemey_moves.include?([loc[0],a]) || enemey_moves.include?([loc[0],b]) || enemey_moves.include?([loc[0],4]) || (loc[0] == 0 && enemey_moves.include?([loc[0],1]))
+    if enemey_moves.include?([loc[0],a]) || enemey_moves.include?([loc[0],b]) || enemey_moves.include?([loc[0],4])
       return false
     elsif board.game_board[loc[0]][a].piece != nil || board.game_board[loc[0]][b].piece != nil || (loc[1] == 0  && board.game_board[loc[0]][1].piece != nil)
       return false
