@@ -83,7 +83,7 @@ class Game_Board
 
   def turn(player)
     @turn_counter += 0.5
-    if @turn_counter == 50
+    if @turn_counter == 50 || (@player_1_pieces.length == 1 && @player_2_pieces.length == 1)
       puts Rainbow("The game has ended in a draw.").yellow
       return false
     end
@@ -127,22 +127,151 @@ class Game_Board
   end
 
   def ai_turn(player, pieces)
-    move = false
-    pick = Array.new(2)
-    while move == false
-      pick = pieces[rand(pieces.length)]
-      if @game_board[pick[0]][pick[1]].piece.valid_moves(@game_board).length > 0
-        move = @game_board[pick[0]][pick[1]].piece.valid_moves(@game_board)[rand(@game_board[pick[0]][pick[1]].piece.valid_moves(@game_board).length)]
-        unless move_mechanics(player,pick,move)
-          move = false
+    #move = false
+    #pick = Array.new(2)
+    #while move == false
+      #pick = pieces[rand(pieces.length)]
+      #if @game_board[pick[0]][pick[1]].piece.valid_moves(@game_board).length > 0
+        #move = @game_board[pick[0]][pick[1]].piece.valid_moves(@game_board)[rand(@game_board[pick[0]][pick[1]].piece.valid_moves(@game_board).length)]
+        #unless move_mechanics(player,pick,move)
+          #move = false
+        #end
+      #end
+    #end
+    #if checkmate?(player)
+      #return false
+    #end
+    #sleep(0.1)
+
+    ##OVERHAULLING AI## AI was just choosing random valid moves, and forced to try again if 
+    #the move would put it in check. The AI needs to prioritize possible moves, and to 
+    #stalemate if no valid moves exist. Code below this text is for the overhaul. All code above
+    #is the old code, which will be commented out, and then deleted after testing.
+    checkmate_moves = Array.new
+    check_moves = Array.new
+    queen_moves = Array.new
+    nobal_moves = Array.new
+    pawn_moves = Array.new
+    non_catch_moves = Array.new
+    good_move = false
+    #sleep(0.1)
+    if player == 1
+      @player_1_pieces.length.times do |pieces_index|
+        @game_board[@player_1_pieces[pieces_index][0]][@player_1_pieces[pieces_index][1]].piece.valid_moves(@game_board).length.times do |moves_index|
+          potential_move = @game_board[@player_1_pieces[pieces_index][0]][@player_1_pieces[pieces_index][1]].piece.valid_moves(@game_board)[moves_index]
+          #if it checkmates
+            #checkmate_moves << potential_move
+          #elsif it checks
+            #check_moves << potential_move
+          #elsif instead of if on the line below
+          if @game_board[potential_move[0]][potential_move[1]].piece.is_a? Queen
+            queen_moves << [@player_1_pieces[pieces_index], potential_move]
+          elsif (@game_board[potential_move[0]][potential_move[1]].piece.is_a? Bishop) || (@game_board[potential_move[0]][potential_move[1]].piece.is_a? Knight) || (@game_board[potential_move[0]][potential_move[1]].piece.is_a? Rook)
+            nobal_moves << [@player_1_pieces[pieces_index], potential_move]
+          elsif @game_board[potential_move[0]][potential_move[1]].piece.is_a? Pawn
+            pawn_moves << [@player_1_pieces[pieces_index], potential_move]
+          else
+            non_catch_moves << [@player_1_pieces[pieces_index], potential_move]
+          end
+        end
+      end
+
+      #adding castling
+      if (@game_board[7][4].piece.is_a? King) && @game_board[7][4].piece.moved == false
+        if (@game_board[7][0].piece.is_a? Rook) && @game_board[7][0].piece.moved == false
+          non_catch_moves << [[7,0], "castle"]
+        end
+        if (@game_board[7][7].piece.is_a? Rook) && @game_board[7][7].piece.moved == false
+          non_catch_moves << [[7,7], "castle"]
+        end
+      end
+
+    else 
+      @player_2_pieces.length.times do |pieces_index|
+        @game_board[@player_2_pieces[pieces_index][0]][@player_2_pieces[pieces_index][1]].piece.valid_moves(@game_board).length.times do |moves_index|
+          potential_move = @game_board[@player_2_pieces[pieces_index][0]][@player_2_pieces[pieces_index][1]].piece.valid_moves(@game_board)[moves_index]
+          #if it checkmates
+            #checkmate_moves << potential_move
+          #elsif it checks
+            #check_moves << potential_move
+          #elsif instead of if on the line below
+          if @game_board[potential_move[0]][potential_move[1]].piece.is_a? Queen
+            queen_moves << [@player_2_pieces[pieces_index], potential_move]
+          elsif (@game_board[potential_move[0]][potential_move[1]].piece.is_a? Bishop) || (@game_board[potential_move[0]][potential_move[1]].piece.is_a? Knight) || (@game_board[potential_move[0]][potential_move[1]].piece.is_a? Rook)
+            nobal_moves << [@player_2_pieces[pieces_index], potential_move]
+          elsif @game_board[potential_move[0]][potential_move[1]].piece.is_a? Pawn
+            pawn_moves << [@player_2_pieces[pieces_index], potential_move]
+          else
+            non_catch_moves << [@player_2_pieces[pieces_index], potential_move]
+          end
+        end
+      end
+
+      #adding castling
+      if (@game_board[0][4].piece.is_a? King) && @game_board[0][4].piece.moved == false
+        if (@game_board[0][0].piece.is_a? Rook) && @game_board[0][0].piece.moved == false
+          non_catch_moves << [[0,0], "castle"]
+        end
+        if (@game_board[0][7].piece.is_a? Rook) && @game_board[0][7].piece.moved == false
+          non_catch_moves << [[0,7], "castle"]
         end
       end
     end
-    if checkmate?(player)
-      return false
+    
+    while good_move == false
+      if checkmate_moves.length != 0
+        pick = checkmate_moves[rand(checkmate_moves.length)]
+        self_check = 1
+        #puts "checkmate?"
+      elsif check_moves.length != 0
+        pick = check_moves[rand(check_moves.length)]
+        self_check = 2
+        #puts "check?"
+      elsif queen_moves.length != 0
+        pick = queen_moves[rand(queen_moves.length)]
+        self_check = 3
+        #puts "queen?"
+      elsif nobal_moves.length != 0
+        pick = nobal_moves[rand(nobal_moves.length)]
+        self_check = 4
+        #puts "nobal?"
+      elsif pawn_moves.length != 0
+        pick = pawn_moves[rand(pawn_moves.length)]
+        self_check = 5
+        #puts "pawn?"
+      elsif non_catch_moves.length != 0
+        pick = non_catch_moves[rand(non_catch_moves.length)]
+        self_check = 6
+        #puts "nothing to catch?"
+      else
+        puts Rainbow("The game has ended in a stalemate.").yellow
+        return false
+      end
+
+      if move_mechanics(player,pick[0],pick[1])
+        good_move = true
+      else
+        case self_check
+        when 1
+          checkmate_moves.delete(pick)
+        when 2
+          check_moves.delete(pick)
+        when 3
+          queen_moves.delete(pick)
+        when 4
+          nobal_moves.delete(pick)
+        when 5
+          pawn_moves.delete(pick)
+        when 6
+          non_catch_moves.delete(pick)
+        end
+      end
     end
-    sleep(0.1)
+    return true
+
   end
+
+
 
 
   #THIS SECTION DEFINES MOVEMENT BEHAVOIR
@@ -166,7 +295,7 @@ class Game_Board
     if board.game_board[current_loc[0]][current_loc[1]].piece.valid_moves(board.game_board).include?(new_loc)
       if move_mechanics(player,current_loc,new_loc,board) == false
         if @selection[player - 1] != 'ai'
-        puts "That would put you in check."
+          puts "That would put you in check."
         end
         return false
       end
@@ -212,11 +341,69 @@ class Game_Board
   end
 
 
+  def get_enemy_moves(player,board)
+    enemey_moves = Array.new
+    if player == 1
+      board.player_2_pieces.length.times do |piece_index|
+        board.game_board[board.player_2_pieces[piece_index][0]][board.player_2_pieces[piece_index][1]].piece.valid_moves(board.game_board).length.times do |moves|
+          enemey_moves << board.game_board[board.player_2_pieces[piece_index][0]][board.player_2_pieces[piece_index][1]].piece.valid_moves(board.game_board)[moves]
+        end
+      end
+    else
+      board.player_1_pieces.length.times do |piece_index|
+        board.game_board[board.player_1_pieces[piece_index][0]][board.player_1_pieces[piece_index][1]].piece.valid_moves(board.game_board).length.times do |moves|
+          enemey_moves << board.game_board[board.player_1_pieces[piece_index][0]][board.player_1_pieces[piece_index][1]].piece.valid_moves(board.game_board)[moves]
+        end
+      end
+    end
+    return enemey_moves
+  end
 
+  def castle_mechanics(loc, enemey_moves, board)
+
+    #a, b, and c are just for coordinates that are related to loc[1]
+    if loc[1] == 0
+      a = 3
+      b = 2
+    else
+      a = 5
+      b = 6
+    end
+
+    if enemey_moves.include?([loc[0],loc[1]]) || enemey_moves.include?([loc[0],a]) || enemey_moves.include?([loc[0],b]) || enemey_moves.include?([loc[0],4]) || (loc[0] == 0 && enemey_moves.include?([loc[0],1]))
+      return false
+    elsif board.game_board[loc[0]][a].piece != nil || board.game_board[loc[0]][b].piece != nil || (loc[1] == 0  && board.game_board[loc[0]][1].piece != nil)
+      return false
+    else
+      board.game_board[loc[0]][a] = board.game_board[loc[0]][loc[1]]
+      board.game_board[loc[0]][b] = board.game_board[loc[0]][4]      
+      board.game_board[loc[0]][loc[1]] = BoardLoc.new
+      board.game_board[loc[0]][4] = BoardLoc.new
+      board.game_board[loc[0]][a].piece.moved = true
+      board.game_board[loc[0]][b].piece.moved = true
+      if loc[0] == 0
+        @p_2_king = [loc[0],b]
+        player = 2
+      else
+        @p_1_king = [loc[0],b]
+        player = 1
+      end
+      update_player_array(player,loc,[loc[0],a],board, nil)
+      update_player_array(player,loc,[loc[0],b],board, nil)
+      return true
+    end
+
+  end
 
     #makes the changes to move the piece on the board, updating move if
     #appropriate, and removing the other player's piece if one was captured
   def move_mechanics(player,current_loc,new_loc,board = self)
+
+    if new_loc == "castle"
+      enemey_moves = get_enemy_moves(player,board)
+      return castle_mechanics(current_loc,enemey_moves,board)
+    end
+
     if board.game_board[new_loc[0]][new_loc[1]].piece != nil
       was_captured = board.game_board[new_loc[0]][new_loc[1]].piece.token
       temp = board.game_board[new_loc[0]][new_loc[1]].piece
@@ -515,11 +702,11 @@ def game()
   puts "2. Human vs AI"
   puts "3. AI vs Human"
   puts "4. AI vs AI"
-  selection = false
-  while selection == false
-    selection = select_player(gets.chomp)
-  end
-  game = Game_Board.new(selection)
+  #selection = false
+  #while selection == false
+    #selection = select_player(gets.chomp)
+  #end
+  game = Game_Board.new(['ai', 'ai'])
   game_loop(game)
 end
 
