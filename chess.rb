@@ -186,17 +186,26 @@ class Game_Board
     #location of the pawn in question. A + or - has been added to the en passant string to tell the 
     #movement mechanics method which pawn is being taken in the move.
     if @en_passant_decay > 0
+      puts "We doin en passant?"
+      sleep(2)
       8.times do |i|
         if player_pieces.include?([en_passant_row,i]) && (@game_board[en_passant_row][i].piece.is_a? Pawn)
+          puts "we have a pawn here"
+          sleep(2)
           if (i - 1 >= 0) && (@game_board[en_passant_row][i-1].piece.is_a? Pawn)
+            puts "Found a pawn"
             unless player_pieces.include?([en_passant_row,i-1]) || (@game_board[en_passant_row][i-1].piece.en_passant_vulnerable == false)
               pawn_moves << [[en_passant_row,i], "en passant-"]
+              puts "En passant...?"
             end
           elsif (i + 1 < 8) && (@game_board[en_passant_row][i+1].piece.is_a? Pawn)
+            puts "Found a pawn"
             unless player_pieces.include?([en_passant_row,i+1]) || (@game_board[en_passant_row][i+1].piece.en_passant_vulnerable == false)
               pawn_moves << [[en_passant_row,i], "en passant+"]
+              puts "En passant...?"
             end
           end
+          sleep(2)
         end
       end
     end
@@ -414,6 +423,54 @@ class Game_Board
       return castle_mechanics(current_loc,enemey_moves,board)
     end
 
+
+    if new_loc.include?("en passant")
+      if player == 1
+        up_down_change = -1
+      else
+        up_down_change = 1
+      end
+
+      if new_loc.include?("+")
+        left_right_change = 1
+      else
+        left_right_change = -1
+      end
+      
+      temp_player_pawn = board.game_board[current_loc[0]][current_loc[1]]
+      temp_oponent_pawn = board.game_board[current_loc[0]][current_loc[1] + left_right_change]
+      was_captured = temp_oponent_pawn.piece.token
+
+      board.game_board[current_loc[0] + up_down_change][current_loc[1] + left_right_change] = temp_player_pawn
+      board.game_board[current_loc[0]][current_loc[1]] = BoardLoc.new
+      board.game_board[current_loc[0]][current_loc[1] + left_right_change] = BoardLoc.new
+
+      update_player_array(player,current_loc,[current_loc[0] + up_down_change,current_loc[1] + left_right_change],board, nil)
+      captured(player, [current_loc[0],current_loc[1] + left_right_change], was_captured)
+
+      if in_check?(player, board)
+        board.game_board[current_loc[0]][current_loc[1]] = temp_player_pawn
+        board.game_board[current_loc[0]][current_loc[1] + left_right_change] = temp_oponent_pawn
+        board.game_board[current_loc[0] + up_down_change][current_loc[1] + left_right_change] = BoardLoc.new
+        if player == 1
+          player_1_pieces << [current_loc[0],current_loc[1]]
+          player_1_pieces.delete([current_loc[0] + up_down_change, current_loc[1] + left_right_change])
+          player_2_pieces << [current_loc[0],[current_loc[1] + left_right_change]
+          player_2_captured_pawns.delete(was_captured)
+        else
+          player_2_pieces << [current_loc[0],current_loc[1]]
+          player_2_pieces.delete([current_loc[0] + up_down_change, current_loc[1] + left_right_change])
+          player_1_pieces << [current_loc[0],[current_loc[1] + left_right_change]
+          player_1_captured_pawns.delete(was_captured)
+        end
+        return false
+      end
+
+      board.game_board[current_loc[0] + up_down_change][current_loc[1] + left_right_change].piece.position = [current_loc[0] + up_down_change, current_loc[1] + left_right_change]
+      @turn_counter = -0.5
+      return true
+    end
+
     if board.game_board[new_loc[0]][new_loc[1]].piece != nil
       was_captured = board.game_board[new_loc[0]][new_loc[1]].piece.token
       temp = board.game_board[new_loc[0]][new_loc[1]].piece
@@ -469,7 +526,7 @@ class Game_Board
       if (current_loc[0] - new_loc[0] == 2) || (current_loc[0] - new_loc[0] == -2)
         if ((board.game_board[new_loc[0]][new_loc[1]+1] != nil) && (board.game_board[new_loc[0]][new_loc[1]+1].piece.is_a? Pawn)) || ((board.game_board[new_loc[0]][new_loc[1]-1] != nil) && (board.game_board[new_loc[0]][new_loc[1]-1].piece.is_a? Pawn))
           board.game_board[new_loc[0]][new_loc[1]].piece.en_passant_vulnerable = true
-          en_passant_decay = 1.0
+          @en_passant_decay = 1.0
         end
       end
     end
@@ -705,11 +762,11 @@ def game()
   puts "2. Human vs AI"
   puts "3. AI vs Human"
   puts "4. AI vs AI"
-  #selection = false
-  #while selection == false
-    #selection = select_player(gets.chomp)
-  #end
-  game = Game_Board.new(['ai', 'ai'])
+  selection = false
+  while selection == false
+    selection = select_player(gets.chomp)
+  end
+  game = Game_Board.new(selection)
   game_loop(game)
 end
 
