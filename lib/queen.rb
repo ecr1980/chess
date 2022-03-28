@@ -1,8 +1,9 @@
 class Queen
-  attr_accessor :player, :position, :token
+  attr_accessor :player, :position, :token, :name
   def initialize(player, position)
     @player = player
     @position = position
+    @name = "Queen"
     if player == 2
       @token = "\u2655"
     else
