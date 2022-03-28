@@ -1,3 +1,4 @@
+require 'json'
 require 'rainbow'
 require './lib/king'
 require './lib/queen'
@@ -11,7 +12,7 @@ class Game_Board
 
   attr_accessor :game_board, :player_1_pieces, :player_2_pieces, :player_1_captured_nobals,
   :player_2_captured_nobals, :player_1_captured_pawns, :player_2_captured_pawns, :p_1_king,
-  :p_2_king
+  :p_2_king, :turn_counter, :en_passant_decay, :selection
 
   def initialize(selection)
     @selection = selection
@@ -25,7 +26,88 @@ class Game_Board
         board_color += 1
       end
     end
-    player_setup()
+    if selection == "continue"
+      load('autosave')
+    else
+      player_setup()
+    end
+  end
+
+  def save(filename = "autosave")
+    save_player_1_pieces = Array.new
+    save_player_2_pieces = Array.new
+    save_game_status = {:player_1_pieces=>@player_1_pieces, :player_2_pieces=>@player_2_pieces,
+                 :player_1_captured_nobals=>@player_1_captured_nobals, :player_2_captured_nobals=>@player_2_captured_nobals,
+                 :player_1_captured_pawns=>@player_1_captured_pawns, :player_2_captured_pawns=>player_2_captured_pawns, 
+                 :p_1_king=>@p_1_king, :p_2_king=>@p_2_king, :turn_counter=>@turn_counter, :en_passant_decay=>@en_passant_decay,
+                 :selection=>@selection}.to_json
+    2.times do |player|  
+      if player == 0
+        player_pieces = @player_1_pieces
+      else
+        player_pieces = @player_2_pieces
+      end          
+      player_pieces.length.times do |index|
+        if (@game_board[player_pieces[index][0]][player_pieces[index][1]].piece.is_a? Pawn) ||
+           (@game_board[player_pieces[index][0]][player_pieces[index][1]].piece.is_a? Rook) ||
+           (@game_board[player_pieces[index][0]][player_pieces[index][1]].piece.is_a? King)
+
+          save_player_1_pieces << {:name=>@game_board[player_pieces[index][0]][player_pieces[index][1]].piece.name, :player=>(player + 1), :position=>player_pieces[index],
+                                   :moved=>@game_board[player_pieces[index][0]][player_pieces[index][1]].piece.moved}.to_json
+        else
+          save_player_1_pieces << {:name=>@game_board[player_pieces[index][0]][player_pieces[index][1]].piece.name, :player=>(player + 1), :position=>player_pieces[index]}.to_json
+        end
+      end
+    end
+    
+    file = File.open("save_files/#{filename}.txt","w")
+    file.puts save_game_status
+    file.puts save_player_1_pieces
+    file.puts save_player_2_pieces
+    file.close
+    return true
+  end
+
+  def load(filename = "autosave")
+    file = File.open("save_files/#{filename}.txt", "r")
+    save_game_status = file.readline
+    save_game_status = JSON.parse(save_game_status).to_hash
+    @player_1_pieces = save_game_status["player_1_pieces"]
+    @player_2_pieces = save_game_status["player_2_pieces"]
+    @player_1_captured_nobals = save_game_status["player_1_captured_nobals"]
+    @player_2_captured_nobals = save_game_status["player_2_captured_nobals"]
+    @player_1_captured_pawns = save_game_status["player_1_captured_pawns"]
+    @player_2_captured_pawns = save_game_status["player_2_captured_pawns"]
+    @p_1_king = save_game_status["p_1_king"]
+    @p_2_king = save_game_status["p_1_king"]
+    @turn_counter = save_game_status["turn_counter"]
+    @en_passant_decay = save_game_status["en_passant_decay"]
+    @selection = save_game_status["selection"]  
+    2.times do |side|
+      if side == 0
+        player_pieces = @player_1_pieces
+      else
+        player_pieces = @player_2_pieces
+      end 
+      player_pieces.length.times do |index|
+        player_piece = file.readline
+        player_piece = JSON.parse(player_piece).to_hash
+        name = player_piece["name"]
+        player = player_piece["player"]
+        position = player_piece["position"]
+        p player_piece
+        p name
+        @game_board[position[0]][position[1]].new_piece(player, name, position)
+        if (@game_board[position[0]][position[1]].piece.is_a? Pawn) ||
+          (@game_board[position[0]][position[1]].piece.is_a? Rook) ||
+          (@game_board[position[0]][position[1]].piece.is_a? King)
+          if player_piece["moved"] == true
+            @game_board[position[0]][position[1]].piece.moved = true
+          end
+        end
+      end
+    end
+    file.close
   end
 
   def player_setup
@@ -39,25 +121,25 @@ class Game_Board
     @player_1_captured_pawns = Array.new()
     @player_2_captured_pawns = Array.new()
     8.times do |index|
-      @game_board[6][index].new_piece(1, "pawn", [6,index])
-      @game_board[1][index].new_piece(2, "pawn", [1,index])
+      @game_board[6][index].new_piece(1, "Pawn", [6,index])
+      @game_board[1][index].new_piece(2, "Pawn", [1,index])
     end
-    @game_board[7][0].new_piece(1, "rook", [7,0])
-    @game_board[7][1].new_piece(1, "knight", [7,1]) 
-    @game_board[7][2].new_piece(1, "bishop", [7,2]) 
-    @game_board[7][3].new_piece(1, "queen", [7,3]) 
-    @game_board[7][4].new_piece(1, "king", [7,4]) 
-    @game_board[7][5].new_piece(1, "bishop", [7,5]) 
-    @game_board[7][6].new_piece(1, "knight", [7,6])
-    @game_board[7][7].new_piece(1, "rook", [7,7])  
-    @game_board[0][0].new_piece(2, "rook", [0,0])
-    @game_board[0][1].new_piece(2, "knight", [0,1])
-    @game_board[0][2].new_piece(2, "bishop", [0,2]) 
-    @game_board[0][3].new_piece(2, "queen", [0,3])
-    @game_board[0][4].new_piece(2, "king", [0,4]) 
-    @game_board[0][5].new_piece(2, "bishop", [0,5]) 
-    @game_board[0][6].new_piece(2, "knight", [0,6]) 
-    @game_board[0][7].new_piece(2, "rook", [0,7])
+    @game_board[7][0].new_piece(1, "Rook", [7,0])
+    @game_board[7][1].new_piece(1, "Knight", [7,1]) 
+    @game_board[7][2].new_piece(1, "Bishop", [7,2]) 
+    @game_board[7][3].new_piece(1, "Queen", [7,3]) 
+    @game_board[7][4].new_piece(1, "King", [7,4]) 
+    @game_board[7][5].new_piece(1, "Bishop", [7,5]) 
+    @game_board[7][6].new_piece(1, "Knight", [7,6])
+    @game_board[7][7].new_piece(1, "Rook", [7,7])  
+    @game_board[0][0].new_piece(2, "Rook", [0,0])
+    @game_board[0][1].new_piece(2, "Knight", [0,1])
+    @game_board[0][2].new_piece(2, "Bishop", [0,2]) 
+    @game_board[0][3].new_piece(2, "Queen", [0,3])
+    @game_board[0][4].new_piece(2, "King", [0,4]) 
+    @game_board[0][5].new_piece(2, "Bishop", [0,5]) 
+    @game_board[0][6].new_piece(2, "Knight", [0,6]) 
+    @game_board[0][7].new_piece(2, "Rook", [0,7])
   end
 
   def display
@@ -100,6 +182,7 @@ class Game_Board
     else
       human_turn(player)
     end
+    save()
   end
 
   def human_turn(player)
@@ -113,19 +196,64 @@ class Game_Board
       entered_piece = false
       entered_move = false
       while entered_piece == false
-        puts "Please enter the piece you want to move."
+        puts "Please enter the piece you want to move, or type save, quit, or reload."
         entered_piece = gets.chomp
-        entered_piece = move_conversion(entered_piece)
+        entered_piece = entered_piece.downcase
+        if entered_piece == "save"
+          #save
+        elsif entered_piece == "quit"
+          puts "Thank you for playing!"
+          return false
+        elsif entered_piece == "reload"
+          #reload
+        else
+          entered_piece = move_conversion(entered_piece)
+        end
       end
       #The move_conversion changes the on screen grid option to proper array
       while entered_move == false
-        puts "Please enter the new location."
+        puts "Please enter the new location, or special move if it is available."
         entered_move = gets.chomp
-        entered_move = move_conversion(entered_move)
+        entered_move = entered_move.downcase
+        if entered_move != "castle" && entered_move != "en passant"
+          entered_move = move_conversion(entered_move)
+        elsif entered_move == "en passant"
+          if en_passant_decay == 0
+            puts "That move is unavailable at this time."
+            return false
+          end
+          puts "Which pawn would you like to take?"
+          pawn = gets.chomp
+          pawn = move_conversion(pawn)
+          if (pawn[1] == entered_piece[1]-1) && (pawn[0] == entered_piece[0])
+            entered_move = "en passant-"
+          elsif (pawn[1] == entered_piece[1]+1) && (pawn[0] == entered_piece[0])
+            entered_move = "en passant+"
+          else
+            puts "that's not a good move"
+            entered_move = false
+          end
+        elsif entered_move == "castle"
+          if game_board[entered_piece[0]][entered_piece[1]].piece != nil && (game_board[entered_piece[0]][entered_piece[1]].piece.is_a? King)
+            puts "Which rook do you want to switch with?"
+            temp_piece = gets.chomp
+            temp_piece = move_conversion(temp_piece)
+            if temp_piece
+              entered_piece = temp_piece
+            else
+              entered_move = false
+            end
+          end
+        end
+        
       end
       continue = move(player,entered_piece,entered_move)
-      if continue == true && checkmate?(player)
-        return false
+      if continue != false
+        if checkmate?(player)
+          self.display
+          puts Rainbow("Checkmate!").yellow
+          return false
+        end
       end
     end
     return true
@@ -141,7 +269,7 @@ class Game_Board
     non_catch_moves = Array.new
     good_move = false
     used = false
-    #sleep(1)
+    sleep(1) #sleep is used to give the illusion that the AI opponent is taking a moment in thought.
 
     if player == 1
       player_pieces = player_1_pieces
@@ -186,26 +314,17 @@ class Game_Board
     #location of the pawn in question. A + or - has been added to the en passant string to tell the 
     #movement mechanics method which pawn is being taken in the move.
     if @en_passant_decay > 0
-      puts "We doin en passant?"
-      sleep(2)
       8.times do |i|
         if player_pieces.include?([en_passant_row,i]) && (@game_board[en_passant_row][i].piece.is_a? Pawn)
-          puts "we have a pawn here"
-          sleep(2)
           if (i - 1 >= 0) && (@game_board[en_passant_row][i-1].piece.is_a? Pawn)
-            puts "Found a pawn"
             unless player_pieces.include?([en_passant_row,i-1]) || (@game_board[en_passant_row][i-1].piece.en_passant_vulnerable == false)
               pawn_moves << [[en_passant_row,i], "en passant-"]
-              puts "En passant...?"
             end
           elsif (i + 1 < 8) && (@game_board[en_passant_row][i+1].piece.is_a? Pawn)
-            puts "Found a pawn"
             unless player_pieces.include?([en_passant_row,i+1]) || (@game_board[en_passant_row][i+1].piece.en_passant_vulnerable == false)
               pawn_moves << [[en_passant_row,i], "en passant+"]
-              puts "En passant...?"
             end
           end
-          sleep(2)
         end
       end
     end
@@ -213,25 +332,21 @@ class Game_Board
 
     
     while good_move == false
-      if checkmate_moves.length != 0
-        pick = checkmate_moves[rand(checkmate_moves.length)]
-        self_check = 1
-        #puts "checkmate?"
-      elsif check_moves.length != 0
+      if check_moves.length != 0
         pick = check_moves[rand(check_moves.length)]
-        self_check = 2
+        self_check = 1
       elsif queen_moves.length != 0
         pick = queen_moves[rand(queen_moves.length)]
-        self_check = 3
+        self_check = 2
       elsif nobal_moves.length != 0
         pick = nobal_moves[rand(nobal_moves.length)]
-        self_check = 4
+        self_check = 3
       elsif pawn_moves.length != 0
         pick = pawn_moves[rand(pawn_moves.length)]
-        self_check = 5
+        self_check = 4
       elsif non_catch_moves.length != 0
         pick = non_catch_moves[rand(non_catch_moves.length)]
-        self_check = 6
+        self_check = 5
       else
         if in_check?(player)
           puts Rainbow("Checkmate!").yellow
@@ -246,16 +361,14 @@ class Game_Board
       else
         case self_check
         when 1
-          checkmate_moves.delete(pick)
-        when 2
           check_moves.delete(pick)
-        when 3
+        when 2
           queen_moves.delete(pick)
-        when 4
+        when 3
           nobal_moves.delete(pick)
-        when 5
+        when 4
           pawn_moves.delete(pick)
-        when 6
+        when 5
           non_catch_moves.delete(pick)
         end
       end
@@ -284,7 +397,7 @@ class Game_Board
 
     #board is included to check potential moves in the future without actually
     #moving pieces. @game_board is default.
-  def move(player,current_loc,new_loc,board = self)
+  def move(player,current_loc,new_loc,board = self,checking = false)
    
     if board.game_board[current_loc[0]][current_loc[1]].piece == nil
       puts "Your piece selection didn't have a piece."
@@ -299,10 +412,16 @@ class Game_Board
     #This sends the valid move to be completed.
     if board.game_board[current_loc[0]][current_loc[1]].piece.valid_moves(board.game_board).include?(new_loc)
       if move_mechanics(player,current_loc,new_loc,board) == false
-        puts "That would put you in check."
+        unless checking == true
+          puts "That would put you in check."
+        end
         return false
       end
-
+    elsif new_loc == 'castle' || new_loc.include?("en passant")
+      if move_mechanics(player,current_loc,new_loc,board) == false
+        puts "That are unable to make that move at this time."
+        return false
+      end
     #Else catches all invalid moves of a valid piece.
     else
       puts "You are unable to move there, try again." 
@@ -391,7 +510,9 @@ class Game_Board
       return false
     else
       board.game_board[loc[0]][a] = board.game_board[loc[0]][loc[1]]
-      board.game_board[loc[0]][b] = board.game_board[loc[0]][4]      
+      board.game_board[loc[0]][b] = board.game_board[loc[0]][4]
+      board.game_board[loc[0]][a].piece.position = [loc[0],a]
+      board.game_board[loc[0]][b].piece.position = [loc[0],b]
       board.game_board[loc[0]][loc[1]] = BoardLoc.new
       board.game_board[loc[0]][4] = BoardLoc.new
       board.game_board[loc[0]][a].piece.moved = true
@@ -455,12 +576,12 @@ class Game_Board
         if player == 1
           player_1_pieces << [current_loc[0],current_loc[1]]
           player_1_pieces.delete([current_loc[0] + up_down_change, current_loc[1] + left_right_change])
-          player_2_pieces << [current_loc[0],[current_loc[1] + left_right_change]
+          player_2_pieces << [current_loc[0],current_loc[1] + left_right_change]
           player_2_captured_pawns.delete(was_captured)
         else
           player_2_pieces << [current_loc[0],current_loc[1]]
           player_2_pieces.delete([current_loc[0] + up_down_change, current_loc[1] + left_right_change])
-          player_1_pieces << [current_loc[0],[current_loc[1] + left_right_change]
+          player_1_pieces << [current_loc[0],current_loc[1] + left_right_change]
           player_1_captured_pawns.delete(was_captured)
         end
         return false
@@ -616,32 +737,28 @@ class Game_Board
       else
         return will_check?(1)
       end
+    else
     end
   end
 
   def will_check?(player)
     in_check = true
     if player == 1
-      @player_1_pieces.length.times do |i|
-        @game_board[@player_1_pieces[i][0]][@player_1_pieces[i][1]].piece.valid_moves(@game_board).length.times do |j|
-          temp_game_board = Marshal.load(Marshal.dump(self))
-          temp_game_board.move(player,[@player_1_pieces[i][0],@player_1_pieces[i][1]], @game_board[@player_1_pieces[i][0]][@player_1_pieces[i][1]].piece.valid_moves(@game_board)[j])
-          if temp_game_board.in_check?(1) == false
-            in_check = false
-          end
-        end
-      end
+      player_pieces = @player_1_pieces
     else
-      @player_2_pieces.length.times do |i|
-        @game_board[@player_2_pieces[i][0]][@player_2_pieces[i][1]].piece.valid_moves(@game_board).length.times do |j|
-          temp_game_board = Marshal.load(Marshal.dump(self))
-          temp_game_board.move(player,[@player_2_pieces[i][0],@player_2_pieces[i][1]], @game_board[@player_2_pieces[i][0]][@player_2_pieces[i][1]].piece.valid_moves(@game_board)[j])
-          if temp_game_board.in_check?(2) == false
-            in_check = false
-          end
+      player_pieces = @player_2_pieces
+    end
+
+    player_pieces.length.times do |i|
+      @game_board[player_pieces[i][0]][player_pieces[i][1]].piece.valid_moves(@game_board).length.times do |j|
+        temp_game_board = Marshal.load(Marshal.dump(self))
+        temp_game_board.move(player,[player_pieces[i][0],player_pieces[i][1]], @game_board[player_pieces[i][0]][player_pieces[i][1]].piece.valid_moves(@game_board)[j],temp_game_board,true)
+        if temp_game_board.in_check?(player) == false
+          in_check = false
         end
       end
     end
+
     return in_check
   end
 end
@@ -653,20 +770,20 @@ class BoardLoc
     @display = "   "
     @piece = nil
   end
-
   def new_piece(player, type, loc)
+    p type
     case type
-    when "pawn"
+    when "Pawn"
       @piece = Pawn.new(player, loc)
-    when "king"
+    when "King"
       @piece = King.new(player, loc)
-    when "queen"
+    when "Queen"
       @piece = Queen.new(player, loc)
-    when "knight"
+    when "Knight"
       @piece = Knight.new(player, loc)
-    when "bishop"
+    when "Bishop"
       @piece = Bishop.new(player, loc)
-    when "rook"
+    when "Rook"
       @piece = Rook.new(player, loc)
     end
     @token = @piece.token
@@ -756,15 +873,33 @@ end
   
 
 def game()
+  save_game = nil
+  unless Dir.exist?("save_files")
+    Dir.mkdir("save_files")
+  end
   puts "Welcome to Chess."
   puts "Would you like to play:"
   puts "1. Human vs Human"
   puts "2. Human vs AI"
   puts "3. AI vs Human"
   puts "4. AI vs AI"
+  if File.exist?("save_files/autosave.txt")
+    saves = true
+    puts 'Type "continue" to continue the last game.'
+    puts 'Or type "load" to load a previous save.'
+  else 
+    saves = false
+  end
   selection = false
   while selection == false
-    selection = select_player(gets.chomp)
+    selection = gets.downcase.chomp
+    if (selection.include? 'load') && saves == true
+      selection = 'load'
+    elsif (selection.include? 'continue') && saves == true
+      selection = 'continue'
+    else
+      selection = select_player(selection)
+    end
   end
   game = Game_Board.new(selection)
   game_loop(game)
