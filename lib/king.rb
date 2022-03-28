@@ -1,8 +1,9 @@
 class King
-  attr_accessor :player, :position, :token, :moved
+  attr_accessor :player, :position, :token, :name, :moved
   def initialize(player, position)
     @player = player
     @position = position
+    @name = "King"
     @moved = false
     if player == 2
       @token = "\u2654"
