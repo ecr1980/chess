@@ -1,10 +1,11 @@
 #require './chess'
 
 class Knight
-  attr_accessor :player, :position, :token
+  attr_accessor :player, :position, :token, :name
   def initialize(player, position)
     @player = player
     @position = position
+    @name = "Knight"
     if player == 2
       @token = "\u2658"
     else
