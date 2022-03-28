@@ -1,9 +1,10 @@
 class Rook
-  attr_accessor :player, :position, :token, :moved
+  attr_accessor :player, :position, :token, :name, :moved
   def initialize(player, position)
     @player = player
     @position = position
     @moved = false
+    @name = 'Rook'
     if player == 2
       @token = "\u2656"
     else
