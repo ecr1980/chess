@@ -1,8 +1,9 @@
 class Pawn 
-  attr_accessor :player, :position, :token, :moved, :en_passant_vulnerable
+  attr_accessor :player, :position, :token, :name, :moved, :en_passant_vulnerable
   def initialize(player, position)
     @player = player
     @position = position
+    @name = "Pawn"
     @moved = false
     @en_passant_vulnerable = false
     if player == 2
