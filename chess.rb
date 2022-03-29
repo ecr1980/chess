@@ -924,7 +924,8 @@ end
   
 
 def game()
-  while true
+  keep_playing = true
+  while keep_playing == true
     save_game = nil
     unless Dir.exist?("save_files")
       Dir.mkdir("save_files")
@@ -963,7 +964,7 @@ def game()
     end
     if play_again == "no"
       puts "Thank you for playing."
-      return false
+      keep_playing = false
     end
   end
 end
