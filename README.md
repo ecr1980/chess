@@ -16,3 +16,7 @@ start over from scratch, I would end up with a more efficient and better coded v
 of the program being limited to the terminal. While I was very happy with my results in how the game looked and performed in the terminal on my own PC, things looked quite
 different in the terminal on Replit. It was still quite usable, but the colors were different, and the squares of the board were not quite squares. Once I have better control
 over the 2D environment in which the game is played, I will come back to this project for improvements.
+
+Update. This game does not display properly on mobile through Replit, though it does display properly through their desktop site. I redid the game board to use ASCII symbols instead
+of colored squares for the game board, so that, while looking less impressive, it would be compatible across more platforms. Unfortunately, while running, I noticed that the new
+game board was a strain on my eyes. I believe it is infinitly better that a program run well on two platforms rather than poorly on three platforms, so I am deciding to keep it as is.
