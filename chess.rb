@@ -180,6 +180,28 @@ class Game_Board
   end
 
   #THIS SECTION DEFINES TURN BEHAVIOR
+  def draw_conditions()
+    if @turn_counter == 50
+      return true
+    elsif (@player_1_pieces.length == 1 && @player_2_pieces.length == 1)
+      return true
+    elsif @player_1_pieces.length <= 2 && @player_2_pieces.length <= 2
+      name_1 = Array.new
+      name_2 = Array.new
+      @player_1_pieces.length.times do |i|
+        name_1 << @game_board[@player_1_pieces[i][0]][@player_1_pieces[i][1]].piece.name
+      end
+      @player_2_pieces.length.times do |i|
+        name_2 << @game_board[@player_2_pieces[i][0]][@player_2_pieces[i][1]].piece.name
+      end
+
+      unless name_1.include?("Pawn") || name_1.include?("Queen") || name_1.include?("Rook") ||
+             name_2.include?("Pawn") || name_2.include?("Queen") || name_2.include?("Rook")
+        return true
+      end
+    end
+    return false
+  end
 
   def turn(player)
     @turn_counter += 0.5
@@ -187,11 +209,15 @@ class Game_Board
       @en_passant_decay -= 0.5
     end
     if will_check?(player) != false
-      puts Rainbow("Stalemate.").yellow
+      if in_check?(player)
+        puts Rainbow("Checkmate!").yellow
+      else
+        puts Rainbow("Stalemate.").yellow
+      end
       return false
     end
-    if @turn_counter == 50 || (@player_1_pieces.length == 1 && @player_2_pieces.length == 1)
-      puts Rainbow("The game has ended in a draw.").yellow
+    if draw_conditions()
+      puts "The game has ended in a draw."
       return false
     end
     if @selection[player - 1] == 'ai'                     #selection array holds human/ai player info
@@ -276,13 +302,6 @@ class Game_Board
         
       end
       continue = move(player,entered_piece,entered_move)
-      if continue != false
-        if checkmate?(player)
-          self.display
-          puts Rainbow("Checkmate!").yellow
-          return false
-        end
-      end
     end
     return true
   end
@@ -384,6 +403,7 @@ class Game_Board
         return false
       end
 
+      #if a move results in check, it is undone and deleted from the array of moves that contained it.
       if move_mechanics(player,pick[0],pick[1])
         good_move = true
       else
@@ -461,12 +481,17 @@ class Game_Board
 
 
   def pawn_switch(player, location)
+    if player == 1
+      other_player = 2
+    else
+      other_player = 1
+    end
     #AI logic - AI should choose a knight if it would result in checkmate, otherwise 
     #it will choose a queen.
     if @selection[player - 1] == 'ai'
-      @game_board[location[0]][location[1]].new_piece(player, "knight", location)
-      unless checkmate?(player)
-        @game_board[location[0]][location[1]].new_piece(player, "queen", location)
+      @game_board[location[0]][location[1]].new_piece(player, "Knight", location)
+      unless will_check?(other_player)
+        @game_board[location[0]][location[1]].new_piece(player, "Queen", location)
       end
     else
       promotion = ""
@@ -899,36 +924,48 @@ end
   
 
 def game()
-  save_game = nil
-  unless Dir.exist?("save_files")
-    Dir.mkdir("save_files")
-  end
-  puts "Welcome to Chess."
-  puts "Would you like to play:"
-  puts "1. Human vs Human"
-  puts "2. Human vs AI"
-  puts "3. AI vs Human"
-  puts "4. AI vs AI"
-  if File.exist?("save_files/autosave.txt")
-    saves = true
-    puts 'Type "continue" to continue the last game.'
-    puts 'Or type "load" to load a previous save.'
-  else 
-    saves = false
-  end
-  selection = false
-  while selection == false
-    selection = gets.downcase.chomp
-    if (selection.include? 'load') && saves == true
-      selection = 'load'
-    elsif (selection.include? 'continue') && saves == true
-      selection = 'continue'
-    else
-      selection = select_player(selection)
+  while true
+    save_game = nil
+    unless Dir.exist?("save_files")
+      Dir.mkdir("save_files")
+    end
+    puts "Welcome to Chess."
+    puts "Would you like to play:"
+    puts "1. Human vs Human"
+    puts "2. Human vs AI"
+    puts "3. AI vs Human"
+    puts "4. AI vs AI"
+    if File.exist?("save_files/autosave.txt")
+      saves = true
+      puts 'Type "continue" to continue the last game.'
+      puts 'Or type "load" to load a previous save.'
+    else 
+      saves = false
+    end
+    selection = false
+    while selection == false
+      selection = gets.downcase.chomp
+      if (selection.include? 'load') && saves == true
+        selection = 'load'
+      elsif (selection.include? 'continue') && saves == true
+        selection = 'continue'
+      else
+        selection = select_player(selection)
+      end
+    end
+    game = Game_Board.new(selection)
+    game_loop(game)
+    puts "Would you like to play again?"
+    play_again = gets.downcase.chomp
+    while play_again != "yes" && play_again != "no"
+      puts "Please type yes or no"
+      play_again = gets.downcase.chomp
+    end
+    if play_again == "no"
+      puts "Thank you for playing."
+      return false
     end
   end
-  game = Game_Board.new(selection)
-  game_loop(game)
 end
 
 def select_player(selection)
