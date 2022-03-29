@@ -217,7 +217,7 @@ class Game_Board
       return false
     end
     if draw_conditions()
-      puts "The game has ended in a draw."
+      puts Rainbow("The game has ended in a draw.").yellow
       return false
     end
     if @selection[player - 1] == 'ai'                     #selection array holds human/ai player info
