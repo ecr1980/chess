@@ -28,6 +28,8 @@ class Game_Board
     end
     if selection == "continue"
       load('autosave')
+    elsif selection == "load"
+      load_menu()
     else
       player_setup()
     end
@@ -68,6 +70,23 @@ class Game_Board
     return true
   end
 
+  def load_menu
+    puts "Please enter a file name you wish you load, or exit to return."
+    file_list = Dir.children("save_files")
+    file_list.length.times do |i|
+      file_list[i].slice! ".txt"
+      puts file_list[i]
+    end
+    file_name = gets.downcase.chomp
+    unless (File.exist?("save_files/#{file_name}.txt"))
+      p file_name
+      puts "#{file_name}.txt"
+      return false
+    end
+    load(file_name)
+  end
+
+
   def load(filename = "autosave")
     file = File.open("save_files/#{filename}.txt", "r")
     save_game_status = file.readline
@@ -95,8 +114,6 @@ class Game_Board
         name = player_piece["name"]
         player = player_piece["player"]
         position = player_piece["position"]
-        p player_piece
-        p name
         @game_board[position[0]][position[1]].new_piece(player, name, position)
         if (@game_board[position[0]][position[1]].piece.is_a? Pawn) ||
           (@game_board[position[0]][position[1]].piece.is_a? Rook) ||
@@ -169,6 +186,10 @@ class Game_Board
     if @en_passant_decay > 0
       @en_passant_decay -= 0.5
     end
+    if will_check?(player) != false
+      puts Rainbow("Stalemate.").yellow
+      return false
+    end
     if @turn_counter == 50 || (@player_1_pieces.length == 1 && @player_2_pieces.length == 1)
       puts Rainbow("The game has ended in a draw.").yellow
       return false
@@ -196,16 +217,23 @@ class Game_Board
       entered_piece = false
       entered_move = false
       while entered_piece == false
-        puts "Please enter the piece you want to move, or type save, quit, or reload."
+        puts "Please enter the piece you want to move, or type save, load, or quit."
         entered_piece = gets.chomp
         entered_piece = entered_piece.downcase
         if entered_piece == "save"
-          #save
+          puts "Please enter the name of your new save file, or type exit to exit."
+          save_file = gets.downcase.chomp
+          if save_file == "exit" || save_file == ""
+            puts "No file saved."
+          else
+            save(save_file)
+          end
+          entered_piece = false
         elsif entered_piece == "quit"
           puts "Thank you for playing!"
           return false
-        elsif entered_piece == "reload"
-          #reload
+        elsif entered_piece == "load"
+          load_menu()
         else
           entered_piece = move_conversion(entered_piece)
         end
@@ -752,8 +780,7 @@ class Game_Board
     player_pieces.length.times do |i|
       @game_board[player_pieces[i][0]][player_pieces[i][1]].piece.valid_moves(@game_board).length.times do |j|
         temp_game_board = Marshal.load(Marshal.dump(self))
-        temp_game_board.move(player,[player_pieces[i][0],player_pieces[i][1]], @game_board[player_pieces[i][0]][player_pieces[i][1]].piece.valid_moves(@game_board)[j],temp_game_board,true)
-        if temp_game_board.in_check?(player) == false
+        if temp_game_board.move(player,[player_pieces[i][0],player_pieces[i][1]], @game_board[player_pieces[i][0]][player_pieces[i][1]].piece.valid_moves(@game_board)[j],temp_game_board,true) != false
           in_check = false
         end
       end
@@ -771,7 +798,6 @@ class BoardLoc
     @piece = nil
   end
   def new_piece(player, type, loc)
-    p type
     case type
     when "Pawn"
       @piece = Pawn.new(player, loc)
