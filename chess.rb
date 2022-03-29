@@ -506,14 +506,14 @@ class Game_Board
 
       case promotion
       when 'rook'
-        @game_board[location[0]][location[1]].new_piece(player, "rook", location)
+        @game_board[location[0]][location[1]].new_piece(player, "Rook", location)
         game_board[location[0]][location[1]].piece.moved = true
       when 'knight'
-        @game_board[location[0]][location[1]].new_piece(player, "knight", location)
+        @game_board[location[0]][location[1]].new_piece(player, "Knight", location)
       when 'bishop'
-        @game_board[location[0]][location[1]].new_piece(player, "bishop", location)
+        @game_board[location[0]][location[1]].new_piece(player, "Bishop", location)
       when 'queen'
-        @game_board[location[0]][location[1]].new_piece(player, "queen", location)
+        @game_board[location[0]][location[1]].new_piece(player, "Queen", location)
       end
     end
   end
