@@ -680,6 +680,7 @@ class Game_Board
         end
       end
       board.game_board[new_loc[0]][new_loc[1]].piece = temp
+      sleep(2)
       return false
     end
 
